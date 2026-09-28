@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SharkNinja AU &ndash; Weekly Snapshot __WE_LABEL__</title>
+<title>SharkNinja AU &ndash; Monthly Snapshot __MONTH_LABEL__</title>
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>/*!
@@ -166,10 +166,14 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
       </div>
     </div>
     <h1>Demo Program <span>Dashboard</span></h1>
-    <div class="hero-sub">Weekly Snapshot &middot; __RANGE_LABEL__</div>
+    <div class="hero-sub">Monthly Snapshot &middot; __MONTH_LABEL__ &middot; __RANGE_LABEL__</div>
   </div>
 
   <div class="filter-bar">
+    <div class="filter-row">
+      <span class="fl">Week</span><div class="chips" id="cw"></div>
+    </div>
+    <hr class="filter-divider">
     <div class="filter-row">
       <span class="fl">State</span><div class="chips" id="cs"></div>
       <span class="fl" style="margin-left:12px">Retailer</span><div class="chips" id="cr"></div>
@@ -217,7 +221,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
   </div>
 
   <div class="cg">
-    <div class="cp"><div class="pt">Units by Category by Day</div><div class="cw" style="height:300px"><canvas id="cwkcat" role="img" aria-label="Stacked bar chart showing units sold per product category across each day">Units by category per day.</canvas></div></div>
+    <div class="cp"><div class="pt">Units by Category by Week</div><div class="cw" style="height:300px"><canvas id="cwkcat" role="img" aria-label="Stacked bar chart showing units sold per product category across each week">Units by category per week.</canvas></div></div>
     <div class="cp"><div class="pt">Units by Product Group</div><div class="cw" style="height:300px"><canvas id="cwkeff" role="img" aria-label="Donut chart showing units sold by product group">Units by product group.</canvas></div></div>
   </div>
 
@@ -340,7 +344,7 @@ const DAY_LABEL = __DAY_LABEL__;
 const dayLbl = d => DAY_LABEL[d] || d;
 const DAY2 = ['Sa','Su','Mo','Tu','We','Th','Fr'];
 
-let F = { states:[], retailers:[], dates:[], weeks:[], months:[], categories:[], stores:[] };
+let F = { states:[], retailers:[], dates:[], weeks:[], months:[], wdays:[], categories:[], stores:[] };
 let CI = {};
 let FR = [...R];
 let stSort='units', stQ='', chSort='units', chQ='', rtSort='units';
@@ -362,8 +366,9 @@ function tog(el, val, key) {
   apply();
 }
 
-const WEEK_MAP = {"WE 12 Jul":["11 Jul 2026","12 Jul 2026"]};
-const MONTH_MAP = {"Jul 2026":["11 Jul 2026","12 Jul 2026"]};
+const WEEK_MAP = __WEEK_MAP__;
+const MONTH_MAP = __MONTH_MAP__;
+const WDAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 function dateWeek(d) {
   for (const [wk, dates] of Object.entries(WEEK_MAP)) { if (dates.includes(d)) return wk; }
   return null;
@@ -480,6 +485,7 @@ function filterNocat() {
     if (F.dates.length && !F.dates.includes(r[3])) return false;
     if (F.weeks.length && !F.weeks.includes(dateWeek(r[3]))) return false;
     if (F.months.length && !F.months.includes(dateMonth(r[3]))) return false;
+    if (F.wdays.length && !F.wdays.includes(dayLbl(r[3]))) return false;
     if (F.stores.length && !F.stores.includes(r[1])) return false;
     return true;
   });
@@ -489,6 +495,7 @@ function filterNoWeek() {
   return R.filter(r => {
     if (F.states.length && !F.states.includes(r[0])) return false;
     if (F.retailers.length && !F.retailers.includes(r[8])) return false;
+    if (F.wdays.length && !F.wdays.includes(dayLbl(r[3]))) return false;
     if (F.stores.length && !F.stores.includes(r[1])) return false;
     if (F.categories.length) {
       const ci = F.categories.map(c => CATS.indexOf(c));
@@ -514,6 +521,8 @@ function apply() {
 
 function updHint() {
   const a = [];
+  if (F.weeks.length) a.push(F.weeks.join(', '));
+  if (F.wdays.length) a.push(F.wdays.map(d => d.slice(0, 3)).join(', '));
   if (F.states.length) a.push(F.states.length + ' state' + (F.states.length > 1 ? 's' : ''));
   if (F.retailers.length) a.push(F.retailers.length + ' retailer' + (F.retailers.length > 1 ? 's' : ''));
   if (F.categories.length) a.push(F.categories.join(', '));
@@ -595,14 +604,14 @@ function updCharts() {
     data: { labels: t10d.map(([n]) => n), datasets: [{ data: t10d.map(([, v]) => v), backgroundColor: '#0B2545', borderRadius: 4 }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Manrope', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Manrope', size: 10 } } } } }
   });
-  // ── Monthly: Units by Category ──
+  // ── Units by Category by Week ──
   dc('cwkcat');
-  const months = META.dates;
+  const months = Object.keys(WEEK_MAP);
   const catColors = ['#E6007E','#0B2545','#FFD900','#FF5DA2','#13314B','#6B7280'];
   const wkCatDatasets = CATS.map((cat, ci) => ({
     label: cat,
     data: months.map(mo => {
-      const moDates = [mo];
+      const moDates = WEEK_MAP[mo];
       return filterNoWeek().filter(r => moDates.includes(r[3])).reduce((s, r) => s + r[9 + ci], 0);
     }),
     backgroundColor: catColors[ci],
@@ -613,7 +622,7 @@ function updCharts() {
   const wkTotals = months.map((mo, wi) => wkCatDatasets.reduce((s, ds) => s + ds.data[wi], 0));
   CI.cwkcat = new Chart(document.getElementById('cwkcat'), {
     type: 'bar',
-    data: { labels: months.map(dayLbl), datasets: wkCatDatasets },
+    data: { labels: months, datasets: wkCatDatasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
@@ -865,6 +874,7 @@ function filteredProds({ store, emp } = {}) {
     if (F.dates.length && !F.dates.includes(dateStr)) continue;
     if (F.weeks.length && !F.weeks.includes(dateWeek(dateStr))) continue;
     if (F.months.length && !F.months.includes(dateMonth(dateStr))) continue;
+    if (F.wdays.length && !F.wdays.includes(dayLbl(dateStr))) continue;
     if (F.categories.length && !F.categories.includes(catName)) continue;
     const key = prodName + '||' + catName;
     if (!result[key]) result[key] = { n: prodName, cat: catName, u: 0, rv: 0 };
@@ -878,8 +888,9 @@ function cMD() { document.getElementById('mo').classList.remove('open'); }
 function closePMo() { document.getElementById('pmo').classList.remove('open'); }
 
 function showProducts(catName) {
-  const prods = PRODUCTS[catName];
-  if (!prods) return;
+  if (!PRODUCTS[catName]) return;
+  const SUB = {}; PRODUCTS[catName].forEach(p => { SUB[p.n] = p.sub; });
+  const prods = filteredProds({}).filter(p => p.cat === catName).map(p => ({ ...p, sub: SUB[p.n] || catName }));
   const total = prods.reduce((s, p) => s + p.u, 0);
   document.getElementById('pmtit').textContent = catName;
   document.getElementById('pmsub').textContent = 'Product breakdown · ' + total.toLocaleString() + ' total units sold';
@@ -904,7 +915,7 @@ function showProducts(catName) {
 }
 
 function resetAll() {
-  F = { states:[], retailers:[], dates:[], categories:[], stores:[] };
+  F = { states:[], retailers:[], dates:[], wdays:[], categories:[], stores:[] };
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.si').forEach(i => i.classList.remove('sel'));
   document.getElementById('ssi').value = ''; filterSL('');
@@ -919,7 +930,8 @@ function resetAll() {
 function init() {
   chip('cs', META.states, 'states');
   chip('cr', META.retailers, 'retailers');
-  chip('cd', META.dates, 'dates', d => dayLbl(d).slice(0, 2));
+  chip('cw', Object.keys(WEEK_MAP), 'weeks');
+  chip('cd', WDAYS, 'wdays', d => d.slice(0, 3));
   chip('cc', CATS, 'categories');
   buildSD();
   apply();

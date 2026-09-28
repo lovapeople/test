@@ -1,10 +1,11 @@
 """
 SharkNinja AU weekly snapshot builder.
 
-Pulls last week's data from Salesforce using the same filters as the
+Pulls this month's data from Salesforce using the same filters as the
 "Weekly Snapshot SharkAU" report, then fills template.html and writes site/index.html.
 
-  Customer = SharkNinja AU, Business Unit = Demo, Actual Start Date = last week (Mon-Sun, Sydney)
+  Customer = SharkNinja AU, Business Unit = Demo, Actual Start Date = every Mon-Sun week (Sydney)
+  that ends in the same month as last week, e.g. Sep 2026 = WE 6, 13, 20 and 27 Sep
   Units = "No of Sales", Revenue = "Value", only the retailers listed in RETAILERS
 
 Environment variables (GitHub secrets):
@@ -12,7 +13,7 @@ Environment variables (GitHub secrets):
   SF_CLIENT_ID      Connected App consumer key
   SF_CLIENT_SECRET  Connected App consumer secret
 
-Optional: WEEK_ENDING=2026-09-27 to rebuild a specific week.
+Optional: WEEK_ENDING=2026-09-27 to rebuild the month up to a specific week.
 Test without Salesforce: python build.py --fixture fixture.json
 """
 import datetime as dt
@@ -30,13 +31,21 @@ RETAILERS = ["Harvey Norman", "The Good Guys"]   # other retailers (e.g. Bing Le
 CATS = ["Coffee Machine", "Cooking", "Floor Care", "Frozen", "Beauty", "Other Products"]
 
 
-def week_range():
+def month_range():
+    """Every Mon-Sun week that ends in the same month as the latest week, up to that week."""
     if os.environ.get("WEEK_ENDING"):
         end = dt.date.fromisoformat(os.environ["WEEK_ENDING"])
     else:
         today = dt.datetime.now(ZoneInfo("Australia/Sydney")).date()
         end = today - dt.timedelta(days=today.weekday() + 1)   # last Sunday
-    return end - dt.timedelta(days=6), end
+    first = end.replace(day=1)
+    first_sunday = first + dt.timedelta(days=(6 - first.weekday()) % 7)
+    return first_sunday - dt.timedelta(days=6), end
+
+
+def week_label(d):
+    sun = d + dt.timedelta(days=6 - d.weekday())
+    return f"WE {sun.day} {sun.strftime('%b')}"
 
 
 def sf_query_all(queries):
@@ -82,7 +91,7 @@ def fmt_date(iso):
 
 
 def main():
-    start, end = week_range()
+    start, end = month_range()
     where = (f"RB_Customer__r.Name = '{CUSTOMER}' AND RB_Business_Unit__r.Name = '{BUSINESS_UNIT}' "
              f"AND RB_Actual_Start_Date__c >= {start} AND RB_Actual_Start_Date__c <= {end}")
     q_ts = ("SELECT Id, State__c, RB_Customer_Store__r.Name, Employee_Name__r.Name, RB_Actual_Start_Date__c, "
@@ -152,12 +161,17 @@ def main():
                            for a in agg.values() if a["cat"] == c], key=lambda x: -x["u"]) for c in CATS}
     PRODUCT_GROUP = {a["n"]: a["grp"] for a in agg.values()}
     DAY_LABEL = {dmap[d]: dt.date.fromisoformat(d).strftime("%A") for d in dates_iso}
-    months = sorted({dt.date.fromisoformat(d).strftime("%b %Y") for d in dates_iso})
+    WEEK_MAP = {}
+    for d in dates_iso:
+        WEEK_MAP.setdefault(week_label(dt.date.fromisoformat(d)), []).append(dmap[d])
+    month = end.strftime("%B %Y")
+    MONTH_MAP = {month: dates}
+    months = [month]
     we = end.strftime(f"{end.day} %b %Y")
-    META = dict(monthLabel="WE " + we, states=sorted({r[0] for r in R}), retailers=sorted({r[8] for r in R}),
+    META = dict(monthLabel=month, states=sorted({r[0] for r in R}), retailers=sorted({r[8] for r in R}),
                 stores=stores, dates=dates, months=months)
 
-    d0, d1 = dt.date.fromisoformat(dates_iso[0]), dt.date.fromisoformat(dates_iso[-1])
+    d0, d1 = start, end
     rng = (f"{d0.day} &ndash; {d1.day} {d1.strftime('%B %Y')}" if d0.month == d1.month
            else f"{d0.day} {d0.strftime('%B')} &ndash; {d1.day} {d1.strftime('%B %Y')}")
     if d0 == d1:
@@ -165,15 +179,20 @@ def main():
 
     j = lambda o: json.dumps(o, ensure_ascii=True, separators=(",", ":"))
     page = (ROOT / "template.html").read_text()
-    for k, v in dict(R=R, META=META, PR=PR, PRODUCTS=PRODUCTS, PRODUCT_GROUP=PRODUCT_GROUP, DAY_LABEL=DAY_LABEL).items():
+    for k, v in dict(R=R, META=META, PR=PR, PRODUCTS=PRODUCTS, PRODUCT_GROUP=PRODUCT_GROUP, DAY_LABEL=DAY_LABEL,
+                     WEEK_MAP=WEEK_MAP, MONTH_MAP=MONTH_MAP).items():
         page = page.replace(f"__{k}__", j(v).replace("</", "<\\/"))
-    page = page.replace("__WE_LABEL__", "WE " + we).replace("__RANGE_LABEL__", rng)
+    page = (page.replace("__MONTH_LABEL__", month).replace("__WE_LABEL__", "WE " + we)
+            .replace("__RANGE_LABEL__", rng))
 
     out = ROOT / "site"; out.mkdir(exist_ok=True)
     (out / "index.html").write_text(page)
     (out / ".nojekyll").write_text("")
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
-    print(f"WE {we}: {len(R)} shifts, {sum(r[5] for r in R):.2f} hours, {sum(r[6] for r in R)} units, "
+    for wk, wdates in WEEK_MAP.items():
+        wr = [r for r in R if r[3] in wdates]
+        print(f"  {wk}: {len(wr)} shifts, {sum(r[6] for r in wr)} units, ${sum(r[7] for r in wr):,.2f}")
+    print(f"{month} to WE {we}: {len(R)} shifts, {sum(r[5] for r in R):.2f} hours, {sum(r[6] for r in R)} units, "
           f"${sum(r[7] for r in R):,.2f}")
     if skipped:
         print("Left out (not " + " / ".join(RETAILERS) + "): " + "; ".join(skipped))
