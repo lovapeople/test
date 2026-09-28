@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       week_ending:
-        description: "Optional: rebuild a specific week, Sunday date e.g. 2026-09-27 (leave blank for last week)"
+        description: "Optional: rebuild the month up to this Sunday, e.g. 2026-08-30 for August (leave blank for this month)"
         required: false
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install requests
-      - name: Pull last week from Salesforce and build the dashboard
+      - name: Pull this month from Salesforce and build the dashboard
         env:
           SF_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
           SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
