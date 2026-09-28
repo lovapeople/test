@@ -17,6 +17,7 @@ Optional: WEEK_ENDING=2026-09-27 to rebuild the month up to a specific week.
 Test without Salesforce: python build.py --fixture fixture.json
 """
 import datetime as dt
+import hashlib
 import json
 import os
 import sys
@@ -31,16 +32,21 @@ RETAILERS = ["Harvey Norman", "The Good Guys"]   # other retailers (e.g. Bing Le
 CATS = ["Coffee Machine", "Cooking", "Floor Care", "Frozen", "Beauty", "Other Products"]
 
 
-def month_range():
-    """Every Mon-Sun week that ends in the same month as the latest week, up to that week."""
-    if os.environ.get("WEEK_ENDING"):
-        end = dt.date.fromisoformat(os.environ["WEEK_ENDING"])
-    else:
-        today = dt.datetime.now(ZoneInfo("Australia/Sydney")).date()
-        end = today - dt.timedelta(days=today.weekday() + 1)   # last Sunday
+def month_range(end):
+    """Every Mon-Sun week that ends in the same month as the week ending on `end` (a Sunday), up to it."""
     first = end.replace(day=1)
     first_sunday = first + dt.timedelta(days=(6 - first.weekday()) % 7)
     return first_sunday - dt.timedelta(days=6), end
+
+
+def periods():
+    """Periods to try, newest first: this month including the week in progress, then last month
+    (shown until the new month's first shifts arrive)."""
+    if os.environ.get("WEEK_ENDING"):
+        return [month_range(dt.date.fromisoformat(os.environ["WEEK_ENDING"]))]
+    today = dt.datetime.now(ZoneInfo("Australia/Sydney")).date()
+    start, end = month_range(today + dt.timedelta(days=6 - today.weekday()))   # this coming Sunday
+    return [(start, end), month_range(start - dt.timedelta(days=1))]
 
 
 def week_label(d):
@@ -90,8 +96,7 @@ def fmt_date(iso):
     return f"{d.day} {d.strftime('%b %Y')}"
 
 
-def main():
-    start, end = month_range()
+def fetch(start, end):
     where = (f"RB_Customer__r.Name = '{CUSTOMER}' AND RB_Business_Unit__r.Name = '{BUSINESS_UNIT}' "
              f"AND RB_Actual_Start_Date__c >= {start} AND RB_Actual_Start_Date__c <= {end}")
     q_ts = ("SELECT Id, State__c, RB_Customer_Store__r.Name, Employee_Name__r.Name, RB_Actual_Start_Date__c, "
@@ -100,13 +105,27 @@ def main():
             f"Product_Group1__c, noofsales__c, Value__c FROM Product_Sale__c WHERE "
             + where.replace("RB_", "Timesheet__r.RB_"))
 
+    return sf_query_all([q_ts, q_ps])
+
+
+def main():
     if "--fixture" in sys.argv:
         fx = json.loads(Path(sys.argv[sys.argv.index("--fixture") + 1]).read_text())
-        timesheets, sales = fx["timesheets"], fx["sales"]
         start, end = dt.date.fromisoformat(fx["start"]), dt.date.fromisoformat(fx["end"])
+        found = [(start, end, fx["timesheets"], fx["sales"])]
     else:
-        timesheets, sales = sf_query_all([q_ts, q_ps])
+        found = ((start, end, *fetch(start, end)) for start, end in periods())
+    for start, end, timesheets, sales in found:
+        ts, skipped = collect(timesheets)
+        if ts:
+            break
+        print(f"No Demo shifts yet for {start} to {end}.")
+    else:
+        sys.exit("No Demo shifts found; nothing published.")
+    build(start, end, ts, sales, skipped)
 
+
+def collect(timesheets):
     ts = {}
     skipped = []
     for t in timesheets:
@@ -119,8 +138,10 @@ def main():
                                emp=rel(t, "Employee_Name__r.Name") or "Unknown",
                                date=t["RB_Actual_Start_Date__c"], hrs=float(t.get("Shift_Duration_Hours__c") or 0),
                                ret=ret, lines=[])
-    if not ts:
-        sys.exit(f"No Demo shifts found for {start} to {end}; nothing published.")
+    return ts, skipped
+
+
+def build(start, end, ts, sales, skipped):
     for p in sales:
         k = p["Timesheet__c"][:15]
         if k not in ts:
@@ -178,17 +199,27 @@ def main():
         rng = f"{d1.day} {d1.strftime('%B %Y')}"
 
     j = lambda o: json.dumps(o, ensure_ascii=True, separators=(",", ":"))
+    # The page polls version.json and pulls data.json when the version changes, so it can update in place.
+    data = dict(R=R, META=META, PR=PR, PRODUCTS=PRODUCTS, PRODUCT_GROUP=PRODUCT_GROUP, WEEK_MAP=WEEK_MAP,
+                monthLabel=month, weLabel="WE " + we)
+    version = hashlib.sha256(j(data).encode()).hexdigest()[:12]
+    now = dt.datetime.now(ZoneInfo("Australia/Sydney"))
+    updated = now.strftime(f"%a {now.day} %b, {now.hour % 12 or 12}:%M ") + ("am" if now.hour < 12 else "pm")
+    stamp = dict(version=version, updated=updated)
     page = (ROOT / "template.html").read_text()
     for k, v in dict(R=R, META=META, PR=PR, PRODUCTS=PRODUCTS, PRODUCT_GROUP=PRODUCT_GROUP, DAY_LABEL=DAY_LABEL,
                      WEEK_MAP=WEEK_MAP, MONTH_MAP=MONTH_MAP).items():
         page = page.replace(f"__{k}__", j(v).replace("</", "<\\/"))
     page = (page.replace("__MONTH_LABEL__", month).replace("__WE_LABEL__", "WE " + we)
-            .replace("__RANGE_LABEL__", rng))
+            .replace("__RANGE_LABEL__", rng).replace("__VERSION__", version).replace("__UPDATED__", updated))
 
     out = ROOT / "site"; out.mkdir(exist_ok=True)
     (out / "index.html").write_text(page)
     (out / ".nojekyll").write_text("")
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
+    (out / "data.json").write_text(j(dict(data, **stamp)))
+    (out / "version.json").write_text(j(stamp))
+    print(f"Data version {version}")
     for wk, wdates in WEEK_MAP.items():
         wr = [r for r in R if r[3] in wdates]
         print(f"  {wk}: {len(wr)} shifts, {sum(r[6] for r in wr)} units, ${sum(r[7] for r in wr):,.2f}")
