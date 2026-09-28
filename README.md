@@ -1,9 +1,12 @@
 # SharkNinja AU – Weekly Snapshot (auto-updating)
 
-Every Monday morning GitHub pulls this month's data from Salesforce (same filters as the
-"Weekly Snapshot SharkAU" report), rebuilds the dashboard and republishes it.
-"This month" means every Mon–Sun week that ends in the month, e.g. September 2026 =
-WE 6, 13, 20 and 27 Sep (31 Aug – 27 Sep). Use the **Week** filter to look at single weeks.
+Every 5 minutes GitHub pulls this month's data from Salesforce (same filters as the
+"Weekly Snapshot SharkAU" report) and, if anything changed, republishes the dashboard.
+An open dashboard checks for new data every minute and updates in place (filters are kept);
+the **⟳ Refresh** button checks straight away.
+"This month" means every Mon–Sun week that ends in the month, including the week in progress,
+e.g. September 2026 = WE 6, 13, 20 and 27 Sep (31 Aug – 27 Sep). Until a new month's first
+shifts arrive, the previous month stays on screen. Use the **Week** filter to look at single weeks.
 The link never changes: `https://<github-username>.github.io/<repo-name>/`
 
 The dashboard keeps your existing design, logo and password screen.
@@ -27,5 +30,5 @@ The dashboard keeps your existing design, logo and password screen.
   listed in the run log). Change `RETAILERS` in `build.py` if that should change.
 - To rebuild a past month, Run workflow and enter the last Sunday you want included (e.g. `2026-08-30` for August).
 - GitHub pauses scheduled workflows after 60 days with no repo activity; if you get that email,
-  re-enable it in the Actions tab.
+  re-enable it in the Actions tab. Scheduled runs can start a few minutes late when GitHub is busy.
 - The password screen only hides the page; anyone with the link can still read the data in the page source.

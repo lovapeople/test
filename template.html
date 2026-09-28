@@ -58,6 +58,12 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
 .hero h1{font-family:'Unbounded',sans-serif;font-size:clamp(22px,4vw,38px);font-weight:800;line-height:1.15}
 .hero h1 span{color:var(--pink)}
 .hero-sub{margin-top:8px;font-size:14px;opacity:.75}
+.hero-refresh{position:absolute;top:28px;right:32px;display:flex;align-items:center;gap:10px;z-index:1}
+.upd{font-size:12px;opacity:.75;text-align:right;line-height:1.35}
+.rf-btn{padding:8px 16px;background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Manrope',sans-serif;white-space:nowrap}
+.rf-btn:hover{background:var(--pink);border-color:var(--pink)}
+.rf-btn:disabled{opacity:.6;cursor:default}
+@media(max-width:640px){.hero-refresh{position:static;justify-content:space-between;margin-top:16px}.upd{text-align:left}}
 .filter-bar{background:#fff;border-radius:20px;padding:20px 24px;box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:24px}
 .filter-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;margin-bottom:12px}
 .filter-row:last-child{margin-bottom:0}
@@ -166,7 +172,11 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);fon
       </div>
     </div>
     <h1>Demo Program <span>Dashboard</span></h1>
-    <div class="hero-sub">__MONTH_LABEL__</div>
+    <div class="hero-sub" id="hsub">__MONTH_LABEL__</div>
+    <div class="hero-refresh">
+      <div class="upd"><div id="upd">Last change: __UPDATED__</div><div id="upds">Salesforce checked every 5 min</div></div>
+      <button class="rf-btn" id="rfb" onclick="checkForUpdate(true)">⟳ Refresh</button>
+    </div>
   </div>
 
   <div class="filter-bar">
@@ -334,17 +344,17 @@ function checkPw() {
 // Compact: [State,Store,Employee,Date,Day2,Shifts,Hours,Units,TotalValue,Retailer,CM,Co,FC,Fr,Be,Op]
 //           0     1     2        3    4    5      6     7     8          9        10 11 12 13 14 15
 
-const R = __R__;
+let R = __R__;
 
-const META = __META__;
+let META = __META__;
 
 
 
 
 const CATS = ['Coffee Machine','Cooking','Floor Care','Frozen','Beauty','Other Products'];
-const PR = __PR__;
-const PRODUCTS = __PRODUCTS__;
-const PRODGROUP = __PRODUCT_GROUP__;
+let PR = __PR__;
+let PRODUCTS = __PRODUCTS__;
+let PRODGROUP = __PRODUCT_GROUP__;
 const CAT_COLORS = ['#E6007E','#13314B','#FFD900','#FF5DA2','#0B2545','#6B7280'];
 const DAYS = ['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'];
 const DAY2 = ['Sa','Su','Mo','Tu','We','Th','Fr'];
@@ -383,13 +393,13 @@ function dayOfWeek(d) {
 }
 function dayLabel(d) { return DAY2[dayOfWeek(d)]; }
 
-const WEEK_MAP = __WEEK_MAP__;
+let WEEK_MAP = __WEEK_MAP__;
 function dateWeek(d) {
   for (const [wk, dates] of Object.entries(WEEK_MAP)) { if (dates.includes(d)) return wk; }
   return null;
 }
 
-const DAY_OPTS = DAY2.filter(d => META.dates.some(x => dayLabel(x) === d));
+let DAY_OPTS = DAY2.filter(d => META.dates.some(x => dayLabel(x) === d));
 
 function buildWD() {
   const list = document.getElementById('wl');
@@ -908,6 +918,59 @@ function init() {
   buildWD(); buildDD2();
   chip('cc', CATS, 'categories');
   buildSD();
+  apply();
+  setInterval(() => checkForUpdate(false), 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(false); });
+}
+
+// ── Live refresh: GitHub rebuilds the data from Salesforce every 5 minutes; the page picks it up in place ──
+let DATA_VERSION = '__VERSION__';
+let checking = false;
+async function checkForUpdate(manual) {
+  if (checking) return;
+  checking = true;
+  const btn = document.getElementById('rfb'), st = document.getElementById('upds');
+  if (manual) { btn.disabled = true; btn.textContent = '⟳ Checking…'; }
+  try {
+    const v = await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json();
+    let changed = false;
+    if (v.version !== DATA_VERSION) {
+      const d = await (await fetch('data.json?v=' + v.version, { cache: 'no-store' })).json();
+      loadData(d);
+      DATA_VERSION = d.version;
+      changed = true;
+    }
+    document.getElementById('upd').textContent = 'Last change: ' + v.updated;
+    st.textContent = changed ? 'New data loaded' : manual ? 'Up to date' : 'Salesforce checked every 5 min';
+  } catch (e) {
+    if (manual) st.textContent = 'Couldn\u2019t check \u2013 try again';
+  }
+  checking = false;
+  if (manual) { btn.disabled = false; btn.textContent = '⟳ Refresh'; }
+}
+
+function loadData(d) {
+  R = d.R; META = d.META; PR = d.PR; PRODUCTS = d.PRODUCTS; PRODGROUP = d.PRODUCT_GROUP; WEEK_MAP = d.WEEK_MAP;
+  DAY_OPTS = DAY2.filter(x => META.dates.some(y => dayLabel(y) === x));
+  Object.keys(STORE_STATE).forEach(k => delete STORE_STATE[k]);
+  R.forEach(r => { if (!STORE_STATE[r[1]]) STORE_STATE[r[1]] = r[0]; });
+  document.getElementById('hsub').textContent = d.monthLabel;
+  document.title = 'SharkNinja AU \u2013 ' + d.weLabel + ' Dashboard';
+  // keep the viewer's filters, dropping any value the new data no longer has
+  const keep = (a, all) => a.filter(x => all.includes(x));
+  F.states = keep(F.states, META.states); F.retailers = keep(F.retailers, META.retailers);
+  F.stores = keep(F.stores, META.stores); F.weeks = keep(F.weeks, Object.keys(WEEK_MAP)); F.days = keep(F.days, DAY_OPTS);
+  chip('cs', META.states, 'states');
+  chip('cr', META.retailers, 'retailers');
+  document.querySelectorAll('#cs .chip, #cr .chip, #cc .chip').forEach(c => {
+    if (F.states.includes(c.dataset.v) || F.retailers.includes(c.dataset.v) || F.categories.includes(c.dataset.v)) c.classList.add('active');
+  });
+  buildWD(); buildDD2(); filterSL(document.getElementById('ssi').value);
+  const lbl = (n, one, all) => n ? `${n} ${one}${n > 1 ? 's' : ''} selected` : all;
+  document.getElementById('wbl').textContent = lbl(F.weeks.length, 'week', 'All weeks');
+  document.getElementById('dbl').textContent = lbl(F.days.length, 'day', 'All days');
+  document.getElementById('sbl').textContent = lbl(F.stores.length, 'store', 'All stores');
+  document.getElementById('sc').textContent = F.stores.length ? `${F.stores.length} selected` : '';
   apply();
 }
 
