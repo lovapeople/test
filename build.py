@@ -41,7 +41,9 @@ def week_range():
 
 def sf_query_all(queries):
     import requests
-    base = os.environ["SF_INSTANCE_URL"].rstrip("/")
+    base = os.environ["SF_INSTANCE_URL"].strip().rstrip("/")
+    if not base.startswith(("http://", "https://")):
+        base = "https://" + base
     tok = requests.post(f"{base}/services/oauth2/token", data={
         "grant_type": "client_credentials",
         "client_id": os.environ["SF_CLIENT_ID"],
