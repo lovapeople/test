@@ -1,7 +1,9 @@
 # SharkNinja AU – Weekly Snapshot (auto-updating)
 
-Every 5 minutes GitHub pulls this month's data from Salesforce (same filters as the
-"Weekly Snapshot SharkAU" report) and, if anything changed, republishes the dashboard.
+Every minute a watcher (`watch-salesforce.yml`) pulls this month's data from Salesforce (same
+filters as the "Weekly Snapshot SharkAU" report) and, if anything changed — e.g. staff adding
+sales or hours, even for past weeks — republishes the dashboard within about a minute.
+A backup run also checks every 30 minutes.
 An open dashboard checks for new data every minute and updates in place (filters are kept);
 the **⟳ Refresh** button checks straight away.
 "This month" means every Mon–Sun week that ends in the month, including the week in progress,
