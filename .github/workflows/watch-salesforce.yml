@@ -1,0 +1,56 @@
+name: Watch Salesforce for changes
+
+# Checks Salesforce every minute and publishes the dashboard as soon as the data changes
+# (e.g. staff adding sales or hours, including for past weeks). One watch runs for up to ~6 hours;
+# the hourly schedule starts a fresh one, which replaces the old one.
+on:
+  schedule:
+    - cron: "7 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  actions: write   # to start the publish workflow
+  contents: read
+  pages: read
+
+concurrency:
+  group: watch-salesforce
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Check Salesforce every minute
+        env:
+          SF_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
+          SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
+          SF_CLIENT_SECRET: ${{ secrets.SF_CLIENT_SECRET }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          site=$(gh api "repos/${{ github.repository }}/pages" --jq .html_url)
+          version() { python -c "import json,sys; print(json.load(sys.stdin)['version'])" 2>/dev/null; }
+          last=""
+          end=$((SECONDS + 350 * 60))
+          while [ $SECONDS -lt $end ]; do
+            if python build.py > build.log 2>&1; then
+              new=$(version < site/version.json)
+              live=$(curl -fsS "${site%/}/version.json?t=$(date +%s)" 2>/dev/null | version || true)
+              if [ "$new" != "$live" ] && [ "$new" != "$last" ]; then
+                echo "$(date -u +%H:%M:%S) data changed (${live:-none} -> $new), publishing"
+                grep -E "^  WE |to WE" build.log || true
+                gh workflow run weekly-snapshot.yml --ref "${{ github.ref_name }}" && last=$new
+              fi
+            else
+              echo "$(date -u +%H:%M:%S) build failed:"; tail -n 5 build.log
+            fi
+            sleep 60
+          done

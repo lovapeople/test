@@ -2,7 +2,7 @@ name: SharkNinja weekly snapshot
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes (GitHub may start scheduled runs a few minutes late)
+    - cron: "*/30 * * * *"   # backup only; watch-salesforce.yml checks every minute and starts this workflow on changes
   workflow_dispatch:
     inputs:
       week_ending:
@@ -41,8 +41,8 @@ jobs:
       - name: Only publish when the data has changed
         id: check
         run: |
-          live=$(curl -fsS "${{ steps.pages.outputs.base_url }}/version.json?t=$(date +%s)" \
-                 | python -c "import json,sys; print(json.load(sys.stdin)['version'])" || true)
+          live=$(curl -fsS "${{ steps.pages.outputs.base_url }}/version.json?t=$(date +%s)" 2>/dev/null \
+                 | python -c "import json,sys; print(json.load(sys.stdin)['version'])" 2>/dev/null || true)
           new=$(python -c "import json; print(json.load(open('site/version.json'))['version'])")
           if [ "${{ github.event_name }}" = "schedule" ] && [ "$live" = "$new" ]; then
             echo "No change since the last publish ($new)."
