@@ -1,8 +1,9 @@
 name: Watch Salesforce for changes
 
 # Checks Salesforce every minute and publishes the dashboard as soon as the data changes
-# (e.g. staff adding sales or hours, including for past weeks). One watch runs for up to ~6 hours;
-# the hourly schedule starts a fresh one, which replaces the old one.
+# (e.g. staff adding sales or hours, including for past weeks). One watch runs for up to ~6 hours
+# and then starts the next one itself, so it keeps going even when GitHub skips scheduled runs;
+# the hourly schedule is a backup that restarts it if it ever stops.
 on:
   schedule:
     - cron: "7 * * * *"
@@ -54,3 +55,5 @@ jobs:
             fi
             sleep 60
           done
+          echo "Starting the next watch."
+          gh workflow run watch-salesforce.yml --ref "${{ github.ref_name }}"
