@@ -1,1 +1,51 @@
+name: SharkNinja weekly snapshot
+
+on:
+  schedule:
+    - cron: "0 22 * * 0"   # Mondays 9am Sydney (8am outside daylight saving)
+  workflow_dispatch:
+    inputs:
+      week_ending:
+        description: "Optional: rebuild a specific week, Sunday date e.g. 2026-09-27 (leave blank for last week)"
+        required: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Pull last week from Salesforce and build the dashboard
+        env:
+          SF_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
+          SF_CLIENT_ID: ${{ secrets.SF_CLIENT_ID }}
+          SF_CLIENT_SECRET: ${{ secrets.SF_CLIENT_SECRET }}
+          WEEK_ENDING: ${{ github.event.inputs.week_ending }}
+        run: python build.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
 
