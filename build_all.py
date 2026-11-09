@@ -1,7 +1,7 @@
 """
 SharkNinja AU all-time sales dashboard builder.
 
-Pulls every SharkNinja AU Demo and Event shift (Timesheet__c) and sale (Product_Sale__c) from Salesforce,
+Pulls every SharkNinja AU Demo shift and Event shift at Bing Lee Rhodes (Timesheet__c) and sale (Product_Sale__c) from Salesforce,
 for all retailers and dates, and writes site/all/ (index.html, data.json, version.json).
 The page itself does the filtering (dates, business unit, state, retailer, category, store, staff,
 product), so one data file covers everything.
@@ -24,9 +24,12 @@ from zoneinfo import ZoneInfo
 from build import CATS, CUSTOMER, STATUS_OK, rel, sf_query_all, title_store
 
 ROOT = Path(__file__).parent
-BUSINESS_UNITS = ["Demo", "Event"]   # other units (Training, Field Rep/Merch, ...) are left out
+# Which shifts count: every Demo shift, and Event shifts only at the stores in EVENT_STORES.
+# Other units (Training, Field Rep/Merch, ...) and other Event venues are left out.
+EVENT_STORES = ["BING LEE RHODES"]
 WHERE_TS = (f"RB_Customer__r.Name = '{CUSTOMER}' AND RB_Actual_Start_Date__c != null "
-            f"AND RB_Business_Unit__r.Name IN ({', '.join(repr(b) for b in BUSINESS_UNITS)})")
+            f"AND (RB_Business_Unit__r.Name = 'Demo' OR (RB_Business_Unit__r.Name = 'Event' "
+            f"AND RB_Customer_Store__r.Name IN ({', '.join(repr(s) for s in EVENT_STORES)})))")
 WHERE_PS = WHERE_TS.replace("RB_", "Timesheet__r.RB_") + " AND Timesheet__r." + STATUS_OK
 WHERE_TS += " AND " + STATUS_OK   # validated shifts only (see VALIDATED in build.py)
 Q_FINGERPRINT = [

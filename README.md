@@ -25,8 +25,8 @@ The dashboard keeps your existing design, logo and password screen.
 ## All Sales dashboard (all-time, with filters)
 
 `https://<github-username>.github.io/<repo-name>/all/` shows **every** SharkNinja AU sale in Salesforce
-(2024 onwards) for **Demo and Event** shifts, at all retailers, for all dates. Training, Field Rep/Merch
-and other units are left out; change `BUSINESS_UNITS` in `build_all.py` to change that.
+(2024 onwards) for **all Demo shifts and Event shifts at Bing Lee Rhodes**, for all dates. Training,
+Field Rep/Merch and other Event venues are left out; change `EVENT_STORES` in `build_all.py` to change that.
 Same password and look as the monthly page, and it updates itself the same way.
 
 - **Filters:** date range (All time, This/Last month, Last 3/12 months, This/Last year or custom dates),
