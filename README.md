@@ -1,5 +1,9 @@
 # SharkNinja AU – Weekly Snapshot (auto-updating)
 
+**Dashboards (same password):**
+- 📊 **All Sales (all-time, with filters):** https://lovapeople.github.io/test/all/
+- 📅 **This month's demo snapshot:** https://lovapeople.github.io/test/
+
 Every minute a watcher (`watch-salesforce.yml`) pulls this month's data from Salesforce (same
 filters as the "Weekly Snapshot SharkAU" report) and, if anything changed — e.g. staff adding
 sales or hours, even for past weeks — republishes the dashboard within about a minute.
