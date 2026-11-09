@@ -20,7 +20,8 @@ The dashboard keeps your existing design, logo and password screen.
 ## All Sales dashboard (all-time, with filters)
 
 `https://<github-username>.github.io/<repo-name>/all/` shows **every** SharkNinja AU sale in Salesforce
-(July 2024 onwards): all business units (Demo, Event, Training, Field Rep/Merch), all retailers, all dates.
+(2024 onwards) for **Demo and Event** shifts, at all retailers, for all dates. Training, Field Rep/Merch
+and other units are left out; change `BUSINESS_UNITS` in `build_all.py` to change that.
 Same password and look as the monthly page, and it updates itself the same way.
 
 - **Filters:** date range (All time, This/Last month, Last 3/12 months, This/Last year or custom dates),
@@ -40,7 +41,7 @@ Same password and look as the monthly page, and it updates itself the same way.
 
 1. **Salesforce app login (admin):** create a Connected App (or External Client App) with
    OAuth scope "api", **Enable Client Credentials Flow** ticked, and a read-only **Run As** user
-   that can see Timesheets and Product Sales (for all business units, for the All Sales page). Copy the Consumer Key and Secret.
+   that can see Timesheets and Product Sales (Demo and Event, for the All Sales page). Copy the Consumer Key and Secret.
 2. **GitHub:** create a repository and upload all these files, including the `.github` folder.
    Then **Settings → Pages → Source: GitHub Actions**.
 3. **Secrets** (Settings → Secrets and variables → Actions):
