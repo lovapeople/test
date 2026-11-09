@@ -13,11 +13,30 @@ The link never changes: `https://<github-username>.github.io/<repo-name>/`
 
 The dashboard keeps your existing design, logo and password screen.
 
+## All Sales dashboard (all-time, with filters)
+
+`https://<github-username>.github.io/<repo-name>/all/` shows **every** SharkNinja AU sale in Salesforce
+(July 2024 onwards): all business units (Demo, Event, Training, Field Rep/Merch), all retailers, all dates.
+Same password and look as the monthly page, and it updates itself the same way.
+
+- **Filters:** date range (All time, This/Last month, Last 3/12 months, This/Last year or custom dates),
+  business unit, state, retailer, category, store, staff member and a product search. Click a bar in
+  the category chart, or a row in the Stores / Staff / States / Retailers / Business units tables, to
+  filter by it.
+- **Shows:** revenue, units, shifts, hours, revenue per hour, units per shift, average unit value and
+  % of shifts with a sale; a trend chart (revenue, units or shifts by day, week or month); revenue by
+  category; and ranked tables for stores, staff, states, retailers, business units and products.
+- **Download CSV** exports the sales lines that match the current filters.
+- When a category or product filter is on, shifts and hours still count every matching shift; units and
+  revenue count only the matching products.
+- Built by `build_all.py` from `template_all.html`. Each minute the watcher only runs two small count
+  queries and pulls everything again only when Salesforce has changed, to save API calls.
+
 ## One-time setup
 
 1. **Salesforce app login (admin):** create a Connected App (or External Client App) with
    OAuth scope "api", **Enable Client Credentials Flow** ticked, and a read-only **Run As** user
-   that can see Timesheets and Product Sales. Copy the Consumer Key and Secret.
+   that can see Timesheets and Product Sales (for all business units, for the All Sales page). Copy the Consumer Key and Secret.
 2. **GitHub:** create a repository and upload all these files, including the `.github` folder.
    Then **Settings → Pages → Source: GitHub Actions**.
 3. **Secrets** (Settings → Secrets and variables → Actions):
