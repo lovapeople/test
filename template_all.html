@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SharkNinja AU – All Sales</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>__CHARTJS__</script>
+<style>
+:root{--pink:#E6007E;--navy:#0B2545;--navy2:#13314B;--pinkbg:#FFE9F4;--muted:#6B7280;--line:#EAEAEF;--bg:#FAFAFB;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.07);--shadow-lg:0 8px 32px rgba(0,0,0,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--navy);font-size:13px}
+button,input,select{font-family:inherit;color:inherit}
+#main{display:none;max-width:1440px;margin:0 auto;padding:24px}
+@media(max-width:640px){#main{padding:14px 16px}}
+#pw-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+.pw-box{background:#fff;border-radius:20px;padding:40px 36px;box-shadow:var(--shadow-lg);max-width:360px;width:100%;text-align:center}
+.pw-logo{width:60px;height:60px;border:2px solid var(--line);border-radius:14px;margin:0 auto 16px;overflow:hidden;padding:5px}
+.pw-logo img,.hero-icon img{width:100%;height:100%;object-fit:contain}
+.pw-title{font-family:'Unbounded',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px}
+.pw-sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.pw-input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;outline:none}
+.pw-input:focus{border-color:var(--pink)}
+.pw-btn{margin-top:12px;width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.pw-error{color:#DC2626;font-size:12px;margin-top:8px;min-height:16px}
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:28px;padding:32px 40px;color:#fff;position:relative;overflow:hidden;margin-bottom:24px}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(230,0,126,.35),transparent 70%);pointer-events:none}
+@media(max-width:640px){.hero{padding:24px 20px;border-radius:20px}}
+.hero-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.hero-icon{width:44px;height:44px;background:#fff;border-radius:12px;overflow:hidden;padding:3px;flex-shrink:0}
+.hero-brand-name{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+.hero-brand-title{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:800}
+.hero h1{font-family:'Unbounded',sans-serif;font-size:clamp(22px,4vw,38px);font-weight:800;line-height:1.15}
+.hero h1 span{color:var(--pink)}
+.hero-sub{margin-top:8px;font-size:14px;opacity:.75}
+.hero-sub a{color:#fff}
+.hero-refresh{position:absolute;top:28px;right:32px;display:flex;align-items:center;gap:10px;z-index:1}
+.upd{font-size:12px;opacity:.75;text-align:right;line-height:1.35}
+.rf-btn{padding:8px 16px;background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.rf-btn:hover{background:var(--pink);border-color:var(--pink)}
+@media(max-width:760px){.hero-refresh{position:static;justify-content:space-between;margin-top:16px}.upd{text-align:left}}
+.card{background:#fff;border-radius:20px;padding:20px 24px;box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:24px;min-width:0}
+@media(max-width:640px){.card{padding:16px}}
+.fr{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-bottom:12px}
+.fr:last-child{margin-bottom:0}
+.fl{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;min-width:74px}
+.chip{padding:6px 12px;border:1.5px solid var(--line);border-radius:999px;background:#fff;font-size:12px;font-weight:600;cursor:pointer}
+.chip:hover{border-color:var(--pink)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.inp{padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:12px;outline:none;background:#fff;min-height:32px}
+.inp:focus{border-color:var(--pink)}
+.ms{position:relative}
+.ms-btn{min-width:170px;text-align:left;cursor:pointer}
+.ms-dd{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:50;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);width:300px;max-width:calc(100vw - 32px)}
+.ms.open .ms-dd{display:block}
+.ms-dd input{width:calc(100% - 16px);margin:8px}
+.ms-list{max-height:280px;overflow:auto;padding:0 4px 6px}
+.ms-it{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12.5px}
+.ms-it:hover{background:var(--bg)}
+.ms-it input{accent-color:var(--pink)}
+.ms-act{display:flex;justify-content:space-between;padding:6px 12px;border-top:1px solid var(--line);font-size:12px}
+.ms-act button{background:none;border:none;color:var(--pink);font-weight:700;cursor:pointer}
+.btn{padding:7px 14px;border-radius:8px;border:1.5px solid var(--navy);background:#fff;font-weight:700;font-size:12px;cursor:pointer}
+.btn:hover{background:var(--navy);color:#fff}
+.btn.pk{border-color:var(--pink);color:var(--pink)}
+.btn.pk:hover{background:var(--pink);color:#fff}
+.hint{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:#fff;border-radius:16px;padding:16px 18px;border:1px solid var(--line);box-shadow:var(--shadow-sm);border-top:3px solid var(--navy)}
+.kpi.pk{border-top-color:var(--pink)}
+.kl{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.kv{font-family:'Unbounded',sans-serif;font-size:clamp(17px,2vw,22px);font-weight:800}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:24px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.ch{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.ct{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:none;background:#fff;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff}
+.cw{position:relative;height:300px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tw{overflow-x:auto}
+.dt{width:100%;border-collapse:collapse}
+.dt th{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:8px 10px;text-align:right;border-bottom:2px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+.dt th:first-child,.dt td:first-child,.dt th.l,.dt td.l{text-align:left}
+.dt th:hover{color:var(--pink)}
+.dt th.s{color:var(--navy)}
+.dt td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:12.5px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.dt td.nm{white-space:normal;min-width:160px}
+.dt td.rk{color:var(--muted);width:36px}
+.dt tbody tr.cl:hover{background:var(--pinkbg);cursor:pointer}
+.dt tr.sel td{background:var(--pinkbg);font-weight:700}
+.rv{font-weight:700;color:var(--pink)}
+.more{margin-top:12px;text-align:center}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="pw-screen">
+  <div class="pw-box">
+    <div class="pw-logo"><img src="__LOGO__" alt="LOVA"></div>
+    <div class="pw-title">AU Sales Dashboard</div>
+    <div class="pw-sub">Enter password to access</div>
+    <input type="password" class="pw-input" id="pwi" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">ACCESS DASHBOARD</button>
+    <div class="pw-error" id="pwe"></div>
+  </div>
+</div>
+
+<div id="main">
+  <div class="hero">
+    <div class="hero-top">
+      <div class="hero-icon"><img src="__LOGO__" alt="LOVA"></div>
+      <div><div class="hero-brand-name">LOVA People</div><div class="hero-brand-title">SharkNinja</div></div>
+    </div>
+    <h1>All Sales <span>Dashboard</span></h1>
+    <div class="hero-sub"><span id="hsub">Loading…</span> · <a href="../">This month's demo snapshot →</a></div>
+    <div class="hero-refresh">
+      <div class="upd"><div id="upd">Last change: __UPDATED__</div><div id="upds">Salesforce checked every minute</div></div>
+      <button class="rf-btn" id="rfb" onclick="checkForUpdate(true)">⟳ Refresh</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="fr">
+      <span class="fl">Dates</span>
+      <select class="inp" id="preset" onchange="setPreset(this.value)">
+        <option value="all">All time</option><option value="tm">This month</option><option value="lm">Last month</option>
+        <option value="l3">Last 3 months</option><option value="l12">Last 12 months</option>
+        <option value="ty">This year</option><option value="ly">Last year</option><option value="custom">Custom…</option>
+      </select>
+      <input type="date" class="inp" id="d0" onchange="customDates()" aria-label="From date">
+      <span class="hint">to</span>
+      <input type="date" class="inp" id="d1" onchange="customDates()" aria-label="To date">
+    </div>
+    <div class="fr"><span class="fl">Business unit</span><span id="f-bus" class="fr" style="margin:0"></span></div>
+    <div class="fr"><span class="fl">State</span><span id="f-states" class="fr" style="margin:0"></span></div>
+    <div class="fr"><span class="fl">Retailer</span><span id="f-rets" class="fr" style="margin:0"></span></div>
+    <div class="fr"><span class="fl">Category</span><span id="f-cats" class="fr" style="margin:0"></span></div>
+    <div class="fr">
+      <span class="fl">Drill down</span>
+      <div class="ms" id="ms-stores"></div>
+      <div class="ms" id="ms-emps"></div>
+      <input type="search" class="inp" id="pq" placeholder="Search products…" oninput="F.q=this.value.trim().toLowerCase();apply()" style="min-width:180px">
+      <button class="btn" onclick="resetAll()">Reset filters</button>
+      <button class="btn pk" onclick="exportCSV()">⬇ Download CSV</button>
+    </div>
+    <div class="hint" id="fhint"></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="ch">
+        <div class="ct" id="tt">Revenue over time</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="seg" id="seg-m"></div>
+          <div class="seg" id="seg-g"></div>
+        </div>
+      </div>
+      <div class="cw"><canvas id="trend" role="img" aria-label="Sales over time"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct" id="cct">Revenue by category</div></div>
+      <div class="cw"><canvas id="cats" role="img" aria-label="Sales by category"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <div class="tabs" id="tabs"></div>
+      <span class="hint">Click a row to filter by it · click a heading to sort</span>
+    </div>
+    <div class="tw"><table class="dt" id="tbl"></table></div>
+    <div class="more" id="more"></div>
+  </div>
+</div>
+
+<script>
+function checkPw() {
+  const val = document.getElementById('pwi').value;
+  const hash = Array.from(val).reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,0).toString(16);
+  if (hash === '__PW_HASH__') {
+    const s = document.getElementById('pw-screen');
+    s.style.transition = 'opacity .4s'; s.style.opacity = 0;
+    setTimeout(() => { s.style.display = 'none'; document.getElementById('main').style.display = 'block'; init(); }, 400);
+  } else {
+    document.getElementById('pwe').textContent = 'Invalid password';
+    document.getElementById('pwi').value = '';
+    setTimeout(() => document.getElementById('pwe').textContent = '', 3000);
+  }
+}
+
+// ── Data (from data.json) ──
+// S shifts: [date, state, retailer, businessUnit, store, staff, hours]  (indexes into D.*)
+// L sales:  [shift, product, units, revenue]   P products: [name, categoryIndex, subcategory]
+let D, CATS, S, L, P, DATA_VERSION = '__VERSION__';
+let dateMonth, dateWeek;          // per date index: 'YYYY-MM', week-ending Sunday 'YYYY-MM-DD'
+const F = { d0: '', d1: '', bus: new Set(), states: new Set(), rets: new Set(), cats: new Set(), stores: new Set(), emps: new Set(), q: '' };
+let measure = 'rv', grain = 'auto', tab = 'stores', sortKey = 'rv', sortDir = -1, shown = 25;
+let lastAgg = null, trendChart, catChart;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = v => '$' + Math.round(v).toLocaleString('en-AU');
+const money2 = v => '$' + v.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const short = v => Math.abs(v) >= 1e6 ? (v / 1e6).toLocaleString('en-AU', { maximumFractionDigits: 2 }) + 'M' : Math.abs(v) >= 1e4 ? Math.round(v / 1e3).toLocaleString('en-AU') + 'k' : Math.round(v).toLocaleString('en-AU');
+const num = v => Math.round(v).toLocaleString('en-AU');
+const dec = (v, d = 1) => isFinite(v) ? v.toLocaleString('en-AU', { minimumFractionDigits: d, maximumFractionDigits: d }) : '–';
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const fmtDate = s => parse(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function loadData(d) {
+  ({ D, cats: CATS, S, L, P } = d);
+  dateMonth = D.dates.map(s => s.slice(0, 7));
+  dateWeek = D.dates.map(s => { const x = parse(s); x.setDate(x.getDate() + (7 - x.getDay()) % 7); return iso(x); });
+  const sorted = [...D.dates].sort();
+  $('hsub').textContent = `${fmtDate(sorted[0])} – ${fmtDate(sorted[sorted.length - 1])} · ${num(S.length)} shifts · ${num(L.length)} product lines`;
+  $('d0').min = $('d1').min = sorted[0]; $('d0').max = $('d1').max = sorted[sorted.length - 1];
+  buildFilters();
+  if ($('preset').value !== 'custom') setPreset($('preset').value, true);
+  apply();
+}
+
+// ── Filters ──
+function chips(el, key, names) {
+  // drop selections that no longer exist after a data refresh
+  for (const v of [...F[key]]) if (!names.includes(v)) F[key].delete(v);
+  $(el).innerHTML = names.map((n, i) => `<button class="chip${F[key].has(n) ? ' on' : ''}" data-i="${i}">${esc(n)}</button>`).join('');
+  $(el).querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    const n = names[+b.dataset.i]; F[key].has(n) ? F[key].delete(n) : F[key].add(n);
+    b.classList.toggle('on'); apply();
+  });
+}
+function multi(el, key, label, names) {
+  for (const v of [...F[key]]) if (!names.includes(v)) F[key].delete(v);
+  const box = $(el);
+  box.innerHTML = `<button class="inp ms-btn"></button><div class="ms-dd"><input type="search" class="inp" placeholder="Search ${label.toLowerCase()}…"><div class="ms-list"></div><div class="ms-act"><button data-a="clear">Clear</button><button data-a="done">Done</button></div></div>`;
+  const btn = box.querySelector('.ms-btn'), list = box.querySelector('.ms-list'), q = box.querySelector('input');
+  const label_ = () => btn.textContent = F[key].size ? `${label}: ${F[key].size} selected ▾` : `All ${label.toLowerCase()} ▾`;
+  const draw = () => {
+    const t = q.value.toLowerCase();
+    const items = names.filter(n => !t || n.toLowerCase().includes(t)).sort((a, b) => (F[key].has(b) - F[key].has(a)) || a.localeCompare(b));
+    list.innerHTML = items.slice(0, 300).map(n => `<label class="ms-it"><input type="checkbox"${F[key].has(n) ? ' checked' : ''} value="${esc(n)}"><span>${esc(n)}</span></label>`).join('')
+      + (items.length > 300 ? `<div class="hint" style="padding:6px 8px">${items.length - 300} more – keep typing</div>` : '');
+    list.querySelectorAll('input').forEach(c => c.onchange = () => { c.checked ? F[key].add(c.value) : F[key].delete(c.value); label_(); apply(); });
+  };
+  btn.onclick = e => { e.stopPropagation(); document.querySelectorAll('.ms.open').forEach(m => m !== box && m.classList.remove('open')); box.classList.toggle('open'); draw(); q.focus(); };
+  q.oninput = draw;
+  box.querySelector('.ms-dd').onclick = e => e.stopPropagation();
+  box.querySelector('[data-a=clear]').onclick = () => { F[key].clear(); label_(); draw(); apply(); };
+  box.querySelector('[data-a=done]').onclick = () => box.classList.remove('open');
+  box.refresh = () => { label_(); if (box.classList.contains('open')) draw(); };
+  label_();
+}
+document.addEventListener('click', () => document.querySelectorAll('.ms.open').forEach(m => m.classList.remove('open')));
+
+const byName = arr => [...arr].sort((a, b) => a.localeCompare(b));
+function buildFilters() {
+  chips('f-bus', 'bus', byName(D.bus));
+  chips('f-states', 'states', byName(D.states));
+  chips('f-rets', 'rets', byName(D.rets));
+  chips('f-cats', 'cats', CATS);
+  multi('ms-stores', 'stores', 'Stores', byName(D.stores));
+  multi('ms-emps', 'emps', 'Staff', byName(D.emps));
+}
+function setPreset(p, quiet) {
+  const max = parse([...D.dates].sort().pop()), y = max.getFullYear(), m = max.getMonth();
+  const r = { all: ['', ''], tm: [new Date(y, m, 1), max], lm: [new Date(y, m - 1, 1), new Date(y, m, 0)],
+    l3: [new Date(y, m - 2, 1), max], l12: [new Date(y, m - 11, 1), max], ty: [new Date(y, 0, 1), max],
+    ly: [new Date(y - 1, 0, 1), new Date(y - 1, 11, 31)] }[p];
+  if (!r) return;
+  F.d0 = r[0] ? iso(r[0]) : ''; F.d1 = r[1] ? iso(r[1]) : '';
+  $('d0').value = F.d0; $('d1').value = F.d1;
+  if (!quiet) apply();
+}
+function customDates() { F.d0 = $('d0').value; F.d1 = $('d1').value; $('preset').value = 'custom'; apply(); }
+function resetAll() {
+  ['bus', 'states', 'rets', 'cats', 'stores', 'emps'].forEach(k => F[k].clear());
+  F.q = ''; $('pq').value = ''; $('preset').value = 'all';
+  buildFilters(); setPreset('all');
+}
+
+// ── Aggregation ──
+function compute() {
+  const nameSet = (set, names) => set.size ? names.map(n => set.has(n)) : null;
+  const okBu = nameSet(F.bus, D.bus), okSt = nameSet(F.states, D.states), okRt = nameSet(F.rets, D.rets),
+        okSo = nameSet(F.stores, D.stores), okEm = nameSet(F.emps, D.emps);
+  const okDate = D.dates.map(d => (!F.d0 || d >= F.d0) && (!F.d1 || d <= F.d1));
+  const okProd = P.map(p => (!F.cats.size || F.cats.has(CATS[p[1]])) && (!F.q || p[0].toLowerCase().includes(F.q) || String(p[2]).toLowerCase().includes(F.q)));
+  const lineFilter = F.cats.size > 0 || !!F.q;
+
+  const okS = new Uint8Array(S.length);
+  const g = () => ({ sh: 0, hr: 0, u: 0, rv: 0 });
+  const A = { states: {}, rets: {}, bus: {}, stores: {}, emps: {} }, keys = { states: 1, rets: 2, bus: 3, stores: 4, emps: 5 };
+  const T = g(), byDate = new Map(), dims = Object.keys(keys);
+  const dateOf = new Map();
+  S.forEach((s, i) => {
+    if (!okDate[s[0]] || (okBu && !okBu[s[3]]) || (okSt && !okSt[s[1]]) || (okRt && !okRt[s[2]]) || (okSo && !okSo[s[4]]) || (okEm && !okEm[s[5]])) return;
+    okS[i] = 1; T.sh++; T.hr += s[6];
+    for (const k of dims) { const a = A[k][s[keys[k]]] ||= g(); a.sh++; a.hr += s[6]; }
+    const b = byDate.get(s[0]) || byDate.set(s[0], g()).get(s[0]); b.sh++;
+  });
+  const prods = {}, cats = CATS.map(() => ({ u: 0, rv: 0 }));
+  const withSale = new Uint8Array(S.length);
+  for (const l of L) {
+    if (!okS[l[0]] || !okProd[l[1]]) continue;
+    const s = S[l[0]]; withSale[l[0]] = 1;
+    T.u += l[2]; T.rv += l[3];
+    for (const k of dims) { const a = A[k][s[keys[k]]]; a.u += l[2]; a.rv += l[3]; }
+    const p = prods[l[1]] ||= { u: 0, rv: 0, sh: 0 }; p.u += l[2]; p.rv += l[3]; p.sh++;
+    cats[P[l[1]][1]].u += l[2]; cats[P[l[1]][1]].rv += l[3];
+    const b = byDate.get(s[0]); b.u += l[2]; b.rv += l[3];
+  }
+  T.sales = withSale.reduce((a, b) => a + b, 0);
+  return { T, A, prods, cats, byDate, lineFilter };
+}
+
+// ── Render ──
+function apply() {
+  if (!D) return;
+  const a = lastAgg = compute();
+  shown = 25;
+  ['ms-stores', 'ms-emps'].forEach(id => $(id).refresh && $(id).refresh());
+  renderKPIs(a); renderTrend(a); renderCats(a); renderTable();
+  const parts = [];
+  if (F.d0 || F.d1) parts.push(`${F.d0 ? fmtDate(F.d0) : 'start'} – ${F.d1 ? fmtDate(F.d1) : 'latest'}`);
+  for (const [k, n] of [['bus', 'business units'], ['states', 'states'], ['rets', 'retailers'], ['cats', 'categories'], ['stores', 'stores'], ['emps', 'staff']])
+    if (F[k].size) parts.push(F[k].size <= 2 ? [...F[k]].join(', ') : `${F[k].size} ${n}`);
+  if (F.q) parts.push(`products matching “${F.q}”`);
+  $('fhint').textContent = (parts.length ? 'Showing: ' + parts.join(' · ') : 'Showing all SharkNinja AU sales') +
+    (a.lineFilter ? ' · shifts and hours count every matching shift; units and revenue only the matching products' : '');
+}
+
+function renderKPIs({ T }) {
+  const k = [['Revenue', T.rv >= 1e6 ? '$' + short(T.rv) : money(T.rv), 1, money2(T.rv)], ['Units sold', num(T.u), 1], ['Shifts', num(T.sh)], ['Hours', num(T.hr)],
+    ['Revenue / hour', T.hr ? money2(T.rv / T.hr) : '–'], ['Units / shift', T.sh ? dec(T.u / T.sh, 2) : '–'],
+    ['Avg unit value', T.u ? money2(T.rv / T.u) : '–'], ['Shifts with a sale', T.sh ? Math.round(100 * T.sales / T.sh) + '%' : '–']];
+  $('kpis').innerHTML = k.map(([l, v, p, full]) => `<div class="kpi${p ? ' pk' : ''}"${full ? ` title="${full}"` : ''}><div class="kl">${l}</div><div class="kv">${v}</div></div>`).join('');
+}
+
+const MEAS = { rv: ['Revenue', money, v => '$' + short(v)], u: ['Units', num, short], sh: ['Shifts', num, short] };
+const GRAINS = { auto: 'Auto', day: 'Day', week: 'Week', month: 'Month' };
+function seg(el, opts, cur, set) {
+  $(el).innerHTML = Object.entries(opts).map(([k, v]) => `<button class="${k === cur ? 'on' : ''}" data-k="${k}">${Array.isArray(v) ? v[0] : v}</button>`).join('');
+  $(el).querySelectorAll('button').forEach(b => b.onclick = () => set(b.dataset.k));
+}
+function renderTrend({ byDate }) {
+  seg('seg-m', MEAS, measure, k => { measure = k; renderTrend(lastAgg); renderCats(lastAgg); });
+  seg('seg-g', GRAINS, grain, k => { grain = k; renderTrend(lastAgg); });
+  const idx = [...byDate.keys()].sort((a, b) => D.dates[a] < D.dates[b] ? -1 : 1);
+  const first = idx.length ? D.dates[idx[0]] : null, last = idx.length ? D.dates[idx[idx.length - 1]] : null;
+  const span = first ? (parse(last) - parse(first)) / 864e5 : 0;
+  const gr = grain !== 'auto' ? grain : span > 180 ? 'month' : span > 31 ? 'week' : 'day';
+  const keyOf = i => gr === 'month' ? dateMonth[i] : gr === 'week' ? dateWeek[i] : D.dates[i];
+  const buckets = new Map();
+  if (first) {   // every period in the range, so gaps show as zero
+    const d = parse(first), end = parse(last);
+    if (gr === 'week') d.setDate(d.getDate() + (7 - d.getDay()) % 7);
+    if (gr === 'month') d.setDate(1);
+    while (d <= end || (gr === 'week' && buckets.size === 0)) {
+      buckets.set(gr === 'month' ? iso(d).slice(0, 7) : iso(d), 0);
+      gr === 'month' ? d.setMonth(d.getMonth() + 1) : d.setDate(d.getDate() + (gr === 'week' ? 7 : 1));
+    }
+    if (gr === 'week') buckets.set(dateWeek[idx[idx.length - 1]], buckets.get(dateWeek[idx[idx.length - 1]]) || 0);
+  }
+  for (const i of idx) { const k = keyOf(i); buckets.set(k, (buckets.get(k) || 0) + byDate.get(i)[measure]); }
+  const keys = [...buckets.keys()].sort();
+  const label = k => gr === 'month' ? MONTHS[+k.slice(5, 7) - 1] + ' ' + k.slice(2, 4) : (gr === 'week' ? 'WE ' : '') + parse(k).getDate() + ' ' + MONTHS[parse(k).getMonth()];
+  const [mName, fmt, axis] = MEAS[measure];
+  $('tt').textContent = `${mName} by ${gr}`;
+  const data = { labels: keys.map(label), datasets: [{ data: keys.map(k => buckets.get(k)), backgroundColor: '#E6007E', hoverBackgroundColor: '#B30062', borderRadius: 4, borderSkipped: 'start', maxBarThickness: 36 }] };
+  if (trendChart) { trendChart.data = data; trendChart.options.scales.y.ticks.callback = v => axis(v); trendChart.options.plugins.tooltip.callbacks.label = c => `${mName}: ${fmt(c.raw)}`; trendChart.update(); return; }
+  trendChart = new Chart($('trend'), { type: 'bar', data, options: baseOpts(fmt, mName, false, axis) });
+}
+function baseOpts(fmt, mName, horizontal, axis) {
+  const val = { grid: { color: '#EAEAEF' }, border: { display: false }, ticks: { color: '#6B7280', callback: v => axis(v), maxTicksLimit: 6 }, beginAtZero: true };
+  const cat = { grid: { display: false }, border: { color: '#EAEAEF' }, ticks: { color: '#6B7280', autoSkip: true, maxRotation: 0 } };
+  return { responsive: true, maintainAspectRatio: false, animation: { duration: 250 }, indexAxis: horizontal ? 'y' : 'x',
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0B2545', padding: 10, displayColors: false, callbacks: { label: c => `${mName}: ${fmt(c.raw)}` } } },
+    scales: horizontal ? { x: val, y: cat } : { x: cat, y: val }, font: { family: 'Manrope' } };
+}
+function renderCats({ cats }) {
+  const m = measure === 'sh' ? 'rv' : measure, [mName, fmt, axis] = MEAS[m];
+  $('cct').textContent = `${mName} by category`;
+  const order = CATS.map((c, i) => i).filter(i => cats[i].u || cats[i].rv).sort((a, b) => cats[b][m] - cats[a][m]);
+  const data = { labels: order.map(i => CATS[i]), datasets: [{ data: order.map(i => cats[i][m]), backgroundColor: '#0B2545', hoverBackgroundColor: '#E6007E', borderRadius: 4, borderSkipped: 'start', maxBarThickness: 28 }] };
+  if (catChart) { catChart.data = data; catChart.options.scales.x.ticks.callback = v => axis(v); catChart.options.plugins.tooltip.callbacks.label = c => `${mName}: ${fmt(c.raw)}`; catChart.update(); return; }
+  catChart = new Chart($('cats'), { type: 'bar', data, options: baseOpts(fmt, mName, true, axis) });
+  catChart.options.onClick = (e, els) => { if (!els.length) return; const c = catChart.data.labels[els[0].index]; F.cats.has(c) ? F.cats.delete(c) : F.cats.add(c); chips('f-cats', 'cats', CATS); apply(); };
+}
+
+// ── Breakdown tables ──
+const TABS = { stores: ['Stores', 'Store'], emps: ['Staff', 'Staff member'], states: ['States', 'State'], rets: ['Retailers', 'Retailer'], bus: ['Business units', 'Business unit'], prods: ['Products', 'Product'] };
+function tableRows() {
+  const a = lastAgg;
+  if (tab === 'prods') return Object.entries(a.prods).map(([i, p]) => ({ name: P[i][0], cat: CATS[P[i][1]], sub: P[i][2], sh: p.sh, u: p.u, rv: p.rv, avg: p.u ? p.rv / p.u : 0 }));
+  return Object.entries(a.A[tab]).map(([i, x]) => ({ name: D[tab][i], sh: x.sh, hr: x.hr, u: x.u, rv: x.rv, rph: x.hr ? x.rv / x.hr : 0, ups: x.sh ? x.u / x.sh : 0 }));
+}
+function cols() {
+  return tab === 'prods'
+    ? [['name', 'Product', 'l'], ['cat', 'Category', 'l'], ['sub', 'Sub-category', 'l'], ['sh', 'Shifts sold on', num], ['u', 'Units', num], ['rv', 'Revenue', money], ['avg', 'Avg value', money2]]
+    : [['name', TABS[tab][1], 'l'], ['sh', 'Shifts', num], ['hr', 'Hours', num], ['u', 'Units', num], ['rv', 'Revenue', money], ['rph', 'Rev / hour', money2], ['ups', 'Units / shift', v => dec(v, 2)]];
+}
+function renderTable() {
+  $('tabs').innerHTML = Object.entries(TABS).map(([k, v]) => `<button class="chip${k === tab ? ' on' : ''}" data-k="${k}">${v[0]}</button>`).join('');
+  $('tabs').querySelectorAll('button').forEach(b => b.onclick = () => { tab = b.dataset.k; shown = 25; if (!cols().some(c => c[0] === sortKey)) sortKey = 'rv'; renderTable(); });
+  const C = cols(), rows = tableRows();
+  rows.sort((x, y) => { const a = x[sortKey], b = y[sortKey]; return (typeof a === 'string' ? a.localeCompare(b) : a - b) * sortDir; });
+  const filt = tab === 'prods' ? null : F[tab];
+  const head = '<thead><tr><th class="l">#</th>' + C.map(([k, l, f]) => `<th class="${f === 'l' ? 'l' : ''}${k === sortKey ? ' s' : ''}" data-k="${k}">${l}${k === sortKey ? (sortDir < 0 ? ' ▼' : ' ▲') : ''}</th>`).join('') + '</tr></thead>';
+  const body = rows.slice(0, shown).map((r, i) => `<tr class="${filt ? 'cl' : ''}${filt && filt.has(r.name) ? ' sel' : ''}" data-n="${esc(r.name)}"><td class="l rk">${i + 1}</td>` +
+    C.map(([k, , f]) => `<td class="${k === 'name' ? 'nm ' : ''}${f === 'l' ? 'l' : ''}${k === 'rv' ? ' rv' : ''}">${f === 'l' ? esc(r[k]) : f(r[k])}</td>`).join('') + '</tr>').join('');
+  $('tbl').innerHTML = rows.length ? head + '<tbody>' + body + '</tbody>' : '<tbody><tr><td class="empty">No sales match these filters.</td></tr></tbody>';
+  $('tbl').querySelectorAll('th[data-k]').forEach(th => th.onclick = () => { const k = th.dataset.k; sortDir = k === sortKey ? -sortDir : (k === 'name' || k === 'cat' || k === 'sub' ? 1 : -1); sortKey = k; renderTable(); });
+  if (filt) $('tbl').querySelectorAll('tbody tr[data-n]').forEach(tr => tr.onclick = () => {
+    const n = tr.dataset.n; filt.has(n) ? filt.delete(n) : filt.add(n);
+    if (['bus', 'states', 'rets'].includes(tab)) buildFilters();
+    apply();
+  });
+  $('more').innerHTML = rows.length > shown ? `<button class="btn" onclick="shown+=50;renderTable()">Show more (${rows.length - shown} left)</button>` : rows.length > 25 ? `<span class="hint">All ${rows.length} shown</span>` : '';
+}
+
+// ── CSV of the filtered sales lines ──
+function exportCSV() {
+  const a = compute(), okDate = D.dates.map(d => (!F.d0 || d >= F.d0) && (!F.d1 || d <= F.d1));
+  const q = v => /[",\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
+  const out = [['Date', 'Business unit', 'State', 'Retailer', 'Store', 'Staff', 'Shift hours', 'Product', 'Category', 'Sub-category', 'Units', 'Revenue'].join(',')];
+  const names = ['bus', 'states', 'rets', 'stores', 'emps'], idx = { bus: 3, states: 1, rets: 2, stores: 4, emps: 5 };
+  for (const l of L) {
+    const s = S[l[0]], p = P[l[1]];
+    if (!okDate[s[0]] || names.some(k => F[k].size && !F[k].has(D[k][s[idx[k]]]))) continue;
+    if ((F.cats.size && !F.cats.has(CATS[p[1]])) || (F.q && !p[0].toLowerCase().includes(F.q) && !String(p[2]).toLowerCase().includes(F.q))) continue;
+    out.push([D.dates[s[0]], D.bus[s[3]], D.states[s[1]], D.rets[s[2]], D.stores[s[4]], D.emps[s[5]], s[6], p[0], CATS[p[1]], p[2], l[2], l[3].toFixed(2)].map(q).join(','));
+  }
+  const url = URL.createObjectURL(new Blob(['﻿' + out.join('\n')], { type: 'text/csv' }));
+  const el = Object.assign(document.createElement('a'), { href: url, download: `sharkninja-sales-${iso(new Date())}.csv` });
+  document.body.appendChild(el); el.click(); el.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ── Live refresh: GitHub rebuilds the data from Salesforce when it changes; the page picks it up in place ──
+let checking = false;
+async function checkForUpdate(manual) {
+  if (checking) return;
+  checking = true;
+  const btn = $('rfb'), st = $('upds');
+  if (manual) { btn.disabled = true; btn.textContent = '⟳ Checking…'; }
+  try {
+    const v = await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json();
+    let changed = false;
+    if (v.version !== DATA_VERSION || !D) {
+      const d = await (await fetch('data.json?v=' + v.version, { cache: 'no-store' })).json();
+      changed = !!D; loadData(d); DATA_VERSION = d.version;
+    }
+    $('upd').textContent = 'Last change: ' + v.updated;
+    st.textContent = changed ? 'New data loaded' : manual ? 'Up to date' : 'Salesforce checked every minute';
+  } catch (e) {
+    st.textContent = D ? (manual ? 'Couldn’t check – try again' : st.textContent) : 'Couldn’t load the data – press Refresh';
+  }
+  checking = false;
+  if (manual) { btn.disabled = false; btn.textContent = '⟳ Refresh'; }
+}
+function init() {
+  Chart.defaults.font.family = 'Manrope'; Chart.defaults.color = '#6B7280';
+  checkForUpdate(false);
+  setInterval(() => checkForUpdate(false), 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(false); });
+}
+</script>
+</body>
+</html>

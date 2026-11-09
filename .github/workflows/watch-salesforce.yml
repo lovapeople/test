@@ -1,6 +1,6 @@
 name: Watch Salesforce for changes
 
-# Checks Salesforce every minute and publishes the dashboard as soon as the data changes
+# Checks Salesforce every minute and publishes the dashboards (this month + all-time sales) as soon as the data changes
 # (e.g. staff adding sales or hours, including for past weeks). One watch runs for up to ~6 hours
 # and then starts the next one itself, so it keeps going even when GitHub skips scheduled runs;
 # the hourly schedule is a backup that restarts it if it ever stops.
@@ -42,12 +42,15 @@ jobs:
           last=""
           end=$((SECONDS + 350 * 60))
           while [ $SECONDS -lt $end ]; do
-            if python build.py > build.log 2>&1; then
-              new=$(version < site/version.json)
-              live=$(curl -fsS "${site%/}/version.json?t=$(date +%s)" 2>/dev/null | version || true)
+            if python build.py > build.log 2>&1 && python build_all.py --cache .cache/all.json >> build.log 2>&1; then
+              new="$(version < site/version.json)/$(version < site/all/version.json)/"
+              live=""
+              for p in version.json all/version.json; do
+                live="$live$(curl -fsS "${site%/}/$p?t=$(date +%s)" 2>/dev/null | version || true)/"
+              done
               if [ "$new" != "$live" ] && [ "$new" != "$last" ]; then
                 echo "$(date -u +%H:%M:%S) data changed (${live:-none} -> $new), publishing"
-                grep -E "^  WE |to WE" build.log || true
+                grep -E "^  WE |to WE|All-time" build.log || true
                 gh workflow run weekly-snapshot.yml --ref "${{ github.ref_name }}" && last=$new
               fi
             else
