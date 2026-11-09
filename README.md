@@ -4,6 +4,11 @@
 - 📊 **All Sales (all-time, with filters):** https://lovapeople.github.io/test/all/
 - 📅 **This month's demo snapshot:** https://lovapeople.github.io/test/
 
+**Only validated shifts are shown.** A shift (and its sales) appears on both dashboards once its Status in
+Salesforce is *Shift Validated* or *Approved*; Draft, Submitted, Refused and Cancelled shifts are left out.
+So weekend shifts show up as you validate them on Monday — usually within a minute or two of each one.
+Change `VALIDATED` in `build.py` to adjust.
+
 Every minute a watcher (`watch-salesforce.yml`) pulls this month's data from Salesforce (same
 filters as the "Weekly Snapshot SharkAU" report) and, if anything changed — e.g. staff adding
 sales or hours, even for past weeks — republishes the dashboard within about a minute.
