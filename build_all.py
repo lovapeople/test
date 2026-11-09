@@ -36,7 +36,7 @@ Q_DATA = [
     ("SELECT Id, State__c, RB_Customer_Store__r.Name, Employee_Name__r.Name, RB_Actual_Start_Date__c, "
      f"Shift_Duration_Hours__c, Retailer__c, RB_Business_Unit__r.Name FROM Timesheet__c WHERE {WHERE_TS}"),
     ("SELECT Timesheet__c, RB_Customer_Product__r.Name, Product_Family__c, Product_Category__c, "
-     f"noofsales__c, Value__c FROM Product_Sale__c WHERE {WHERE_PS}"),
+     f"Product_Group1__c, noofsales__c, Value__c FROM Product_Sale__c WHERE {WHERE_PS}"),
 ]
 
 
@@ -74,29 +74,31 @@ def shape(timesheets, sales):
                        ix("emps", rel(t, "Employee_Name__r.Name") or "Unknown"),
                        round(float(t.get("Shift_Duration_Hours__c") or 0), 2)])
 
-    prods, lines = {}, {}
+    prods, lines, groups = {}, {}, {}
     for p in sales:
         s = sid.get((p.get("Timesheet__c") or "")[:15])
         if s is None:
             continue
         cat = p.get("Product_Family__c") if p.get("Product_Family__c") in CATS else "Other Products"
         name = rel(p, "RB_Customer_Product__r.Name") or "Unknown product"
-        pi = prods.setdefault(name, [len(prods), CATS.index(cat), p.get("Product_Category__c") or cat])[0]
+        grp = groups.setdefault(p.get("Product_Group1__c") or "Other", len(groups))
+        pi = prods.setdefault(name, [len(prods), CATS.index(cat), p.get("Product_Category__c") or cat, grp])[0]
         e = lines.setdefault((s, pi), [s, pi, 0, 0.0])
         e[2] += int(p.get("noofsales__c") or 0)
         e[3] += float(p.get("Value__c") or 0)
     L = sorted([s, pi, u, round(v, 2)] for s, pi, u, v in lines.values())
-    P = [[n, c, sub] for n, (_, c, sub) in sorted(prods.items(), key=lambda kv: kv[1][0])]
-    return dict(D={k: list(v) for k, v in dims.items()}, cats=CATS, S=shifts, L=L, P=P)
+    P = [[n, c, sub, g] for n, (_, c, sub, g) in sorted(prods.items(), key=lambda kv: kv[1][0])]
+    return dict(D={k: list(v) for k, v in dims.items()}, cats=CATS, groups=list(groups), S=shifts, L=L, P=P)
 
 
 def assets():
-    """Logo, Chart.js and password hash come from template.html so both pages stay in step."""
+    """Logo, Chart.js (+ datalabels plugin) and password hash come from template.html so both pages stay in step."""
     tpl = (ROOT / "template.html").read_text()
     chart = re.search(r"<script>(/\*!\s*\n \* Chart\.js.*?)</script>", tpl, re.S).group(1)
+    labels = re.search(r"<script>(/\*!\s*\n \* chartjs-plugin-datalabels.*?)</script>", tpl, re.S).group(1)
     logo = re.search(r'src="(data:image/[^"]+)"', tpl).group(1)
     pw = re.search(r"if \(hash === '([0-9a-f-]+)'\)", tpl).group(1)
-    return chart, logo, pw
+    return chart + "\n" + labels, logo, pw
 
 
 def main():

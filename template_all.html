@@ -73,7 +73,10 @@ button,input,select{font-family:inherit;color:inherit}
 .kl{font-family:'Unbounded',sans-serif;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
 .kv{font-family:'Unbounded',sans-serif;font-size:clamp(17px,2vw,22px);font-weight:800}
 .grid2{display:grid;grid-template-columns:2fr 1fr;gap:24px}
-@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.grid2.eq{grid-template-columns:1fr 1fr}
+.grid2{margin-bottom:24px}.grid2>.card{margin-bottom:0}
+@media(max-width:1000px){.grid2,.grid2.eq{grid-template-columns:1fr}}
+.sub{font-size:11px;font-weight:500;color:var(--muted);font-family:'Manrope',sans-serif}
 .ch{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
 .ct{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700}
 .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
@@ -170,6 +173,33 @@ button,input,select{font-family:inherit;color:inherit}
     </div>
   </div>
 
+  <div class="grid2 eq">
+    <div class="card">
+      <div class="ch"><div class="ct">Units by State <span class="sub">· click to filter</span></div></div>
+      <div class="cw"><canvas id="csta" role="img" aria-label="Donut chart of units sold by state"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Units by Product Group</div></div>
+      <div class="cw"><canvas id="cgrp" role="img" aria-label="Donut chart of units sold by product group"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid2 eq">
+    <div class="card">
+      <div class="ch"><div class="ct">Top 10 Stores by Units <span class="sub">· click to filter</span></div></div>
+      <div class="cw" style="height:340px"><canvas id="csto" role="img" aria-label="Top 10 stores by units sold"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Top 10 Champions by Units <span class="sub">· click to filter</span></div></div>
+      <div class="cw" style="height:340px"><canvas id="cdem" role="img" aria-label="Top 10 staff by units sold"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="ct" id="cct2">Units by Category by Day</div></div>
+    <div class="cw" style="height:340px"><canvas id="ccatd" role="img" aria-label="Stacked bar chart of units sold per category over time"></canvas></div>
+  </div>
+
   <div class="card">
     <div class="ch">
       <div class="tabs" id="tabs"></div>
@@ -198,11 +228,11 @@ function checkPw() {
 // ── Data (from data.json) ──
 // S shifts: [date, state, retailer, businessUnit, store, staff, hours]  (indexes into D.*)
 // L sales:  [shift, product, units, revenue]   P products: [name, categoryIndex, subcategory]
-let D, CATS, S, L, P, DATA_VERSION = '__VERSION__';
+let D, CATS, GROUPS, S, L, P, DATA_VERSION = '__VERSION__';
 let dateMonth, dateWeek;          // per date index: 'YYYY-MM', week-ending Sunday 'YYYY-MM-DD'
 const F = { d0: '', d1: '', bus: new Set(), states: new Set(), rets: new Set(), cats: new Set(), stores: new Set(), emps: new Set(), q: '' };
 let measure = 'rv', grain = 'auto', tab = 'stores', sortKey = 'rv', sortDir = -1, shown = 25;
-let lastAgg = null, trendChart, catChart;
+let lastAgg = null, trendChart, catChart, periods, extra = {};
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -217,7 +247,7 @@ const fmtDate = s => parse(s).toLocaleDateString('en-AU', { day: 'numeric', mont
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function loadData(d) {
-  ({ D, cats: CATS, S, L, P } = d);
+  ({ D, cats: CATS, groups: GROUPS, S, L, P } = d);
   dateMonth = D.dates.map(s => s.slice(0, 7));
   dateWeek = D.dates.map(s => { const x = parse(s); x.setDate(x.getDate() + (7 - x.getDay()) % 7); return iso(x); });
   const sorted = [...D.dates].sort();
@@ -311,7 +341,7 @@ function compute() {
     for (const k of dims) { const a = A[k][s[keys[k]]] ||= g(); a.sh++; a.hr += s[6]; }
     const b = byDate.get(s[0]) || byDate.set(s[0], g()).get(s[0]); b.sh++;
   });
-  const prods = {}, cats = CATS.map(() => ({ u: 0, rv: 0 }));
+  const prods = {}, cats = CATS.map(() => ({ u: 0, rv: 0 })), groups = GROUPS.map(() => 0), dateCat = new Map();
   const withSale = new Uint8Array(S.length);
   for (const l of L) {
     if (!okS[l[0]] || !okProd[l[1]]) continue;
@@ -321,9 +351,11 @@ function compute() {
     const p = prods[l[1]] ||= { u: 0, rv: 0, sh: 0 }; p.u += l[2]; p.rv += l[3]; p.sh++;
     cats[P[l[1]][1]].u += l[2]; cats[P[l[1]][1]].rv += l[3];
     const b = byDate.get(s[0]); b.u += l[2]; b.rv += l[3];
+    groups[P[l[1]][3]] += l[2];
+    const dc = dateCat.get(s[0]) || dateCat.set(s[0], CATS.map(() => 0)).get(s[0]); dc[P[l[1]][1]] += l[2];
   }
   T.sales = withSale.reduce((a, b) => a + b, 0);
-  return { T, A, prods, cats, byDate, lineFilter };
+  return { T, A, prods, cats, groups, dateCat, byDate, lineFilter };
 }
 
 // ── Render ──
@@ -332,7 +364,7 @@ function apply() {
   const a = lastAgg = compute();
   shown = 25;
   ['ms-stores', 'ms-emps'].forEach(id => $(id).refresh && $(id).refresh());
-  renderKPIs(a); renderTrend(a); renderCats(a); renderTable();
+  renderKPIs(a); renderTrend(a); renderCats(a); renderExtra(a); renderTable();
   const parts = [];
   if (F.d0 || F.d1) parts.push(`${F.d0 ? fmtDate(F.d0) : 'start'} – ${F.d1 ? fmtDate(F.d1) : 'latest'}`);
   for (const [k, n] of [['bus', 'business units'], ['states', 'states'], ['rets', 'retailers'], ['cats', 'categories'], ['stores', 'stores'], ['emps', 'staff']])
@@ -357,7 +389,7 @@ function seg(el, opts, cur, set) {
 }
 function renderTrend({ byDate }) {
   seg('seg-m', MEAS, measure, k => { measure = k; renderTrend(lastAgg); renderCats(lastAgg); });
-  seg('seg-g', GRAINS, grain, k => { grain = k; renderTrend(lastAgg); });
+  seg('seg-g', GRAINS, grain, k => { grain = k; renderTrend(lastAgg); renderCatTime(lastAgg); });
   const idx = [...byDate.keys()].sort((a, b) => D.dates[a] < D.dates[b] ? -1 : 1);
   const first = idx.length ? D.dates[idx[0]] : null, last = idx.length ? D.dates[idx[idx.length - 1]] : null;
   const span = first ? (parse(last) - parse(first)) / 864e5 : 0;
@@ -378,6 +410,7 @@ function renderTrend({ byDate }) {
   const keys = [...buckets.keys()].sort();
   const label = k => gr === 'month' ? MONTHS[+k.slice(5, 7) - 1] + ' ' + k.slice(2, 4) : (gr === 'week' ? 'WE ' : '') + parse(k).getDate() + ' ' + MONTHS[parse(k).getMonth()];
   const [mName, fmt, axis] = MEAS[measure];
+  periods = { gr, keys, keyOf, label };
   $('tt').textContent = `${mName} by ${gr}`;
   const data = { labels: keys.map(label), datasets: [{ data: keys.map(k => buckets.get(k)), backgroundColor: '#E6007E', hoverBackgroundColor: '#B30062', borderRadius: 4, borderSkipped: 'start', maxBarThickness: 36 }] };
   if (trendChart) { trendChart.data = data; trendChart.options.scales.y.ticks.callback = v => axis(v); trendChart.options.plugins.tooltip.callbacks.label = c => `${mName}: ${fmt(c.raw)}`; trendChart.update(); return; }
@@ -399,6 +432,76 @@ function renderCats({ cats }) {
   if (catChart) { catChart.data = data; catChart.options.scales.x.ticks.callback = v => axis(v); catChart.options.plugins.tooltip.callbacks.label = c => `${mName}: ${fmt(c.raw)}`; catChart.update(); return; }
   catChart = new Chart($('cats'), { type: 'bar', data, options: baseOpts(fmt, mName, true, axis) });
   catChart.options.onClick = (e, els) => { if (!els.length) return; const c = catChart.data.labels[els[0].index]; F.cats.has(c) ? F.cats.delete(c) : F.cats.add(c); chips('f-cats', 'cats', CATS); apply(); };
+}
+
+// ── Charts matching the Weekly Snapshot page ──
+// Brand colours in a fixed order (checked for colour-blind separation); each state / group / category
+// keeps its colour whatever the filters. More than 6 slices fold into a grey "Other".
+const PAL = ['#E6007E', '#0B2545', '#FFD900', '#FBB6D9', '#2F80ED', '#9CA3AF'];
+const ink = c => c === '#FFD900' || c === '#FBB6D9' || c === '#9CA3AF' ? '#0B2545' : '#fff';
+// names in a fixed order -> first 5 keep their own colour, the rest are summed into "Other"
+function fold(order, names, values) {
+  const own = order.slice(0, order.length > 6 ? 5 : 6), out = own.map(() => 0); let other = 0;
+  names.forEach((n, i) => { const k = own.indexOf(n); k > -1 ? out[k] += values[i] : other += values[i]; });
+  return { names: order.length > 6 ? [...own, 'Other'] : own, values: order.length > 6 ? [...out, other] : out };
+}
+function redraw(id, cfg) { if (extra[id]) extra[id].destroy(); extra[id] = new Chart($(id), cfg); }
+const shortStore = s => s.replace('Harvey Norman ', 'HN ').replace('The Good Guys ', 'TGG ');
+function donut(id, names, colourOf, values, onPick) {
+  const keep = names.map((n, i) => i).filter(i => values[i] > 0);
+  const total = keep.reduce((t, i) => t + values[i], 0);
+  redraw(id, { type: 'doughnut', plugins: [ChartDataLabels],
+    data: { labels: keep.map(i => names[i]), datasets: [{ data: keep.map(i => values[i]), backgroundColor: keep.map(colourOf), borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '55%', animation: { duration: 250 },
+      onClick: onPick ? (e, els) => els.length && onPick(names[keep[els[0].index]]) : undefined,
+      plugins: { legend: { position: 'right', labels: { font: { size: 12 }, padding: 14, boxWidth: 12 } },
+        tooltip: { backgroundColor: '#0B2545', callbacks: { label: c => ` ${c.label}: ${num(c.raw)} units (${(100 * c.raw / total).toFixed(1)}%)` } },
+        datalabels: { display: c => total > 0 && c.dataset.data[c.dataIndex] / total >= 0.05,
+          color: c => ink(c.dataset.backgroundColor[c.dataIndex]), font: { weight: '700', size: 12 }, textAlign: 'center',
+          formatter: v => `${num(v)}\n${(100 * v / total).toFixed(1)}%` } } } });
+}
+function top10(id, names, values, colour, fmtName, onPick) {
+  const top = names.map((n, i) => i).filter(i => values[i] > 0).sort((a, b) => values[b] - values[a]).slice(0, 10);
+  redraw(id, { type: 'bar', plugins: [ChartDataLabels],
+    data: { labels: top.map(i => fmtName(names[i])), datasets: [{ data: top.map(i => values[i]), backgroundColor: colour, hoverBackgroundColor: '#B30062', borderRadius: 4, borderSkipped: 'start', maxBarThickness: 24 }] },
+    options: { ...baseOpts(num, 'Units', true, short), layout: { padding: { right: 36 } },
+      onClick: (e, els) => els.length && onPick(names[top[els[0].index]]),
+      plugins: { ...baseOpts(num, 'Units', true, short).plugins,
+        tooltip: { backgroundColor: '#0B2545', displayColors: false, callbacks: { title: c => names[top[c[0].dataIndex]], label: c => `Units: ${num(c.raw)}` } },
+        datalabels: { anchor: 'end', align: 'end', offset: 4, color: '#0B2545', font: { weight: '700', size: 11 }, formatter: v => num(v) } } } });
+  if (!top.length) extra[id].options.plugins.title = { display: true, text: 'No sales for these filters', color: '#6B7280' };
+}
+function toggle(key, name) { F[key].has(name) ? F[key].delete(name) : F[key].add(name); buildFilters(); apply(); }
+function renderCatTime({ dateCat }) {
+  if (!periods) return;
+  const { gr, keys, keyOf, label } = periods, idx = new Map(keys.map((k, i) => [k, i]));
+  const sums = CATS.map(() => keys.map(() => 0));
+  for (const [di, arr] of dateCat) { const k = idx.get(keyOf(di)); if (k !== undefined) arr.forEach((u, c) => sums[c][k] += u); }
+  const used = CATS.map((c, i) => i).filter(i => sums[i].some(v => v));
+  const totals = keys.map((k, j) => used.reduce((t, i) => t + sums[i][j], 0));
+  $('cct2').textContent = `Units by Category by ${gr[0].toUpperCase() + gr.slice(1)}`;
+  const opts = baseOpts(num, 'Units', false, short);
+  opts.interaction = { mode: 'index', intersect: false };
+  opts.scales.x.stacked = opts.scales.y.stacked = true;
+  opts.layout = { padding: { top: 22 } };
+  opts.plugins.legend = { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 14 } };
+  opts.plugins.tooltip = { backgroundColor: '#0B2545', padding: 10, filter: c => c.raw > 0,
+    callbacks: { label: c => ` ${c.dataset.label}: ${num(c.raw)}`, footer: c => `Total: ${num(totals[c[0].dataIndex])}` } };
+  opts.plugins.datalabels = { display: c => c.datasetIndex === used.length - 1 && keys.length <= 16 && totals[c.dataIndex] > 0,
+    formatter: (v, c) => num(totals[c.dataIndex]), anchor: 'end', align: 'end', offset: 2, color: '#0B2545', font: { weight: '700', size: 11 } };
+  redraw('ccatd', { type: 'bar', plugins: [ChartDataLabels], options: opts,
+    data: { labels: keys.map(label), datasets: used.map(i => ({ label: CATS[i], data: sums[i], backgroundColor: PAL[i], borderColor: '#fff', borderWidth: { top: 1 }, maxBarThickness: 48 })) } });
+}
+function renderExtra(a) {
+  const MAIN = ['NSW', 'VIC', 'QLD', 'WA', 'SA'];
+  const st = fold([...MAIN.filter(n => D.states.includes(n)), ...byName(D.states.filter(n => !MAIN.includes(n)))],
+                  D.states, D.states.map((n, i) => a.A.states[i] ? a.A.states[i].u : 0));
+  donut('csta', st.names, i => PAL[i], st.values, n => n !== 'Other' && toggle('states', n));
+  const gr = fold(byName(GROUPS), GROUPS, a.groups);
+  donut('cgrp', gr.names, i => PAL[i], gr.values);
+  top10('csto', D.stores, D.stores.map((n, i) => a.A.stores[i] ? a.A.stores[i].u : 0), '#E6007E', shortStore, n => toggle('stores', n));
+  top10('cdem', D.emps, D.emps.map((n, i) => a.A.emps[i] ? a.A.emps[i].u : 0), '#0B2545', n => n, n => toggle('emps', n));
+  renderCatTime(a);
 }
 
 // ── Breakdown tables ──
@@ -436,13 +539,13 @@ function renderTable() {
 function exportCSV() {
   const a = compute(), okDate = D.dates.map(d => (!F.d0 || d >= F.d0) && (!F.d1 || d <= F.d1));
   const q = v => /[",\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
-  const out = [['Date', 'Business unit', 'State', 'Retailer', 'Store', 'Staff', 'Shift hours', 'Product', 'Category', 'Sub-category', 'Units', 'Revenue'].join(',')];
+  const out = [['Date', 'Business unit', 'State', 'Retailer', 'Store', 'Staff', 'Shift hours', 'Product', 'Category', 'Sub-category', 'Product group', 'Units', 'Revenue'].join(',')];
   const names = ['bus', 'states', 'rets', 'stores', 'emps'], idx = { bus: 3, states: 1, rets: 2, stores: 4, emps: 5 };
   for (const l of L) {
     const s = S[l[0]], p = P[l[1]];
     if (!okDate[s[0]] || names.some(k => F[k].size && !F[k].has(D[k][s[idx[k]]]))) continue;
     if ((F.cats.size && !F.cats.has(CATS[p[1]])) || (F.q && !p[0].toLowerCase().includes(F.q) && !String(p[2]).toLowerCase().includes(F.q))) continue;
-    out.push([D.dates[s[0]], D.bus[s[3]], D.states[s[1]], D.rets[s[2]], D.stores[s[4]], D.emps[s[5]], s[6], p[0], CATS[p[1]], p[2], l[2], l[3].toFixed(2)].map(q).join(','));
+    out.push([D.dates[s[0]], D.bus[s[3]], D.states[s[1]], D.rets[s[2]], D.stores[s[4]], D.emps[s[5]], s[6], p[0], CATS[p[1]], p[2], GROUPS[p[3]], l[2], l[3].toFixed(2)].map(q).join(','));
   }
   const url = URL.createObjectURL(new Blob(['﻿' + out.join('\n')], { type: 'text/csv' }));
   const el = Object.assign(document.createElement('a'), { href: url, download: `sharkninja-sales-${iso(new Date())}.csv` });
