@@ -7,6 +7,7 @@ Pulls this month's data from Salesforce using the same filters as the
   Customer = SharkNinja AU, Business Unit = Demo, Actual Start Date = every Mon-Sun week (Sydney)
   that ends in the same month as last week, e.g. Sep 2026 = WE 6, 13, 20 and 27 Sep
   Units = "No of Sales", Revenue = "Value", only the retailers listed in RETAILERS
+  Only validated shifts (Status = Shift Validated or Approved), see VALIDATED
 
 Environment variables (GitHub secrets):
   SF_INSTANCE_URL   e.g. https://meshcircle.my.salesforce.com
@@ -29,6 +30,10 @@ API = "v66.0"
 CUSTOMER = "SharkNinja AU"
 BUSINESS_UNIT = "Demo"
 RETAILERS = ["Harvey Norman", "The Good Guys"]   # other retailers (e.g. Bing Lee) are left out
+# Only shifts that have been checked in Salesforce are shown; Draft / Submitted / Refused / Cancelled
+# shifts (and their sales) stay out until they are validated.
+VALIDATED = ["Shift Validated", "Approved"]
+STATUS_OK = "Status__c IN (" + ", ".join(f"'{v}'" for v in VALIDATED) + ")"
 CATS = ["Coffee Machine", "Cooking", "Floor Care", "Frozen", "Beauty", "Other Products"]
 
 
@@ -100,10 +105,10 @@ def fetch(start, end):
     where = (f"RB_Customer__r.Name = '{CUSTOMER}' AND RB_Business_Unit__r.Name = '{BUSINESS_UNIT}' "
              f"AND RB_Actual_Start_Date__c >= {start} AND RB_Actual_Start_Date__c <= {end}")
     q_ts = ("SELECT Id, State__c, RB_Customer_Store__r.Name, Employee_Name__r.Name, RB_Actual_Start_Date__c, "
-            f"Shift_Duration_Hours__c, Retailer__c FROM Timesheet__c WHERE {where}")
+            f"Shift_Duration_Hours__c, Retailer__c FROM Timesheet__c WHERE {where} AND {STATUS_OK}")
     q_ps = ("SELECT Timesheet__c, RB_Customer_Product__r.Name, Product_Family__c, Product_Category__c, "
             f"Product_Group1__c, noofsales__c, Value__c FROM Product_Sale__c WHERE "
-            + where.replace("RB_", "Timesheet__r.RB_"))
+            + where.replace("RB_", "Timesheet__r.RB_") + " AND Timesheet__r." + STATUS_OK)
 
     return sf_query_all([q_ts, q_ps])
 

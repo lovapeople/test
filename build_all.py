@@ -21,13 +21,14 @@ import sys
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from build import CATS, CUSTOMER, rel, sf_query_all, title_store
+from build import CATS, CUSTOMER, STATUS_OK, rel, sf_query_all, title_store
 
 ROOT = Path(__file__).parent
 BUSINESS_UNITS = ["Demo", "Event"]   # other units (Training, Field Rep/Merch, ...) are left out
 WHERE_TS = (f"RB_Customer__r.Name = '{CUSTOMER}' AND RB_Actual_Start_Date__c != null "
             f"AND RB_Business_Unit__r.Name IN ({', '.join(repr(b) for b in BUSINESS_UNITS)})")
-WHERE_PS = WHERE_TS.replace("RB_", "Timesheet__r.RB_")
+WHERE_PS = WHERE_TS.replace("RB_", "Timesheet__r.RB_") + " AND Timesheet__r." + STATUS_OK
+WHERE_TS += " AND " + STATUS_OK   # validated shifts only (see VALIDATED in build.py)
 Q_FINGERPRINT = [
     f"SELECT COUNT(Id) n, MAX(LastModifiedDate) lm FROM Timesheet__c WHERE {WHERE_TS}",
     f"SELECT COUNT(Id) n, MAX(LastModifiedDate) lm FROM Product_Sale__c WHERE {WHERE_PS}",
