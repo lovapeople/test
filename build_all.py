@@ -1,8 +1,8 @@
 """
 SharkNinja AU all-time sales dashboard builder.
 
-Pulls every SharkNinja AU shift (Timesheet__c) and sale (Product_Sale__c) from Salesforce, for all
-business units, retailers and dates, and writes site/all/ (index.html, data.json, version.json).
+Pulls every SharkNinja AU Demo and Event shift (Timesheet__c) and sale (Product_Sale__c) from Salesforce,
+for all retailers and dates, and writes site/all/ (index.html, data.json, version.json).
 The page itself does the filtering (dates, business unit, state, retailer, category, store, staff,
 product), so one data file covers everything.
 
@@ -24,7 +24,9 @@ from zoneinfo import ZoneInfo
 from build import CATS, CUSTOMER, rel, sf_query_all, title_store
 
 ROOT = Path(__file__).parent
-WHERE_TS = f"RB_Customer__r.Name = '{CUSTOMER}' AND RB_Actual_Start_Date__c != null"
+BUSINESS_UNITS = ["Demo", "Event"]   # other units (Training, Field Rep/Merch, ...) are left out
+WHERE_TS = (f"RB_Customer__r.Name = '{CUSTOMER}' AND RB_Actual_Start_Date__c != null "
+            f"AND RB_Business_Unit__r.Name IN ({', '.join(repr(b) for b in BUSINESS_UNITS)})")
 WHERE_PS = WHERE_TS.replace("RB_", "Timesheet__r.RB_")
 Q_FINGERPRINT = [
     f"SELECT COUNT(Id) n, MAX(LastModifiedDate) lm FROM Timesheet__c WHERE {WHERE_TS}",
